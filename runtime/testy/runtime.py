@@ -9,6 +9,7 @@ import stateManager
 import studentAPI
 
 from runtimeUtil import *
+from Ansible import *
 
 
 # TODO:
@@ -38,6 +39,10 @@ def runtime():
   restartCount = 0
   try:
     spawnProcess(PROCESS_NAMES.STATE_MANAGER, startStateManager)
+    spawnProcess(PROCESS_NAMES.UDP_PACKAGER, packageData)
+    spawnProcess(PROCESS_NAMES.UDP_SENDER, udpSender)
+    spawnProcess(PROCESS_NAMES.UDP_RECEIVER, udpReceiver)
+    spawnProcess(PROCESS_NAMES.UDP_UNPACKAGER, unpackageData)
     while True:
       if restartCount >= 5:
         print(RUNTIME_CONFIG.DEBUG_DELIMITER_STRING.value)
