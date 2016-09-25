@@ -17,7 +17,7 @@ class PROCESS_NAMES(Enum):
   UDP_PACKAGER        = "udpPackager"
   UDP_SENDER          = "udpSender"
   UDP_RECEIVER        = "udpReceiver"
-  UDP_UNPACKAGER       = "udpUnpackager"
+  UDP_UNPACKAGER      = "udpUnpackager"
 
 @unique
 class SM_COMMANDS(Enum):

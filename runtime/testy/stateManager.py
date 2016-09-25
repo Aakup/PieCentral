@@ -16,6 +16,7 @@ class StateManager(object):
     self.input = inputQueue
     # map process names to pipes
     self.processMapping = {PROCESS_NAMES.RUNTIME: runtimePipe}
+
   def initRobotState(self):
     self.state = {
      "incrementer" : 5,
