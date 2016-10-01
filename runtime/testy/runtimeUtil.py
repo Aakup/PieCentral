@@ -14,6 +14,11 @@ class PROCESS_NAMES(Enum):
   STUDENT_CODE        = "studentProcess"
   STATE_MANAGER       = "stateProcess"
   RUNTIME             = "runtime"
+  UDP_SEND_PROCESS    = "udpSendProcess"
+  UDP_RECEIVE_PROCESS = "udpReceiveProcess"
+
+@unique
+class THREAD_NAMES(Enum):
   UDP_PACKAGER        = "udpPackager"
   UDP_SENDER          = "udpSender"
   UDP_RECEIVER        = "udpReceiver"

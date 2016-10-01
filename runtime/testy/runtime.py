@@ -7,9 +7,9 @@ import traceback
 
 import stateManager
 import studentAPI
+import Ansible
 
 from runtimeUtil import *
-from Ansible import *
 
 
 # TODO:
@@ -26,12 +26,6 @@ from Ansible import *
 
 allProcesses = {}
 
-# TODO:
-# 0. Set up testing code for the following features. 
-# 1. Have student code throw an exception. Make sure runtime catches gracefully.
-# 2. Have student code go through api to modify state. 
-
-
 def runtime():
   badThingsQueue = multiprocessing.Queue()
   stateQueue = multiprocessing.Queue()
@@ -39,10 +33,8 @@ def runtime():
   restartCount = 0
   try:
     spawnProcess(PROCESS_NAMES.STATE_MANAGER, startStateManager)
-    spawnProcess(PROCESS_NAMES.UDP_PACKAGER, packageData)
-    spawnProcess(PROCESS_NAMES.UDP_SENDER, udpSender)
-    spawnProcess(PROCESS_NAMES.UDP_RECEIVER, udpReceiver)
-    spawnProcess(PROCESS_NAMES.UDP_UNPACKAGER, unpackageData)
+    spawnProcess(PROCESS_NAMES.UDP_SEND_PROCESS, startUDPSender)
+    spawnProcess(PROCESS_NAMES.UDP_RECEIVE_PROCESS, startUDPReceiver)
     while True:
       if restartCount >= 5:
         print(RUNTIME_CONFIG.DEBUG_DELIMITER_STRING.value)
@@ -105,6 +97,19 @@ def startStateManager(badThingsQueue, stateQueue, runtimePipe):
   try:
     SM = stateManager.StateManager(badThingsQueue, stateQueue, runtimePipe)
     SM.start()
+  except Exception:
+    badThingsQueue.put(BadThing(sys.exc_info(), None))
+def startUDPSender(badThingsQueue, stateQueue, smPipe):
+  try:
+    sendClass = Ansible.udpSendClass(badThingsQueue, stateQueue, smPipe)
+    sendClass.start()
+  except Exception:
+    badThingsQueue.put(BadThing(sys.exc_info(), None))
+
+def startUDPReceiver(badThingsQueue, stateQueue, smPipe):
+  try:
+    recvClass = Ansible.udpRecvClass(badThingsQueue, stateQueue, smPipe)
+    recvClass.start()
   except Exception:
     badThingsQueue.put(BadThing(sys.exc_info(), None))
 
