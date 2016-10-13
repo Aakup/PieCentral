@@ -9,11 +9,11 @@ def setup(pipe):
 
 def main(stateQueue, pipe):
   response = Robot.getValue("incrementer")
-  print("Get Info:", response)
+  #print("Get Info:", response)
   response -= 1
 
   Robot.setValue("incrementer", response)
 
-  print("Saying hello to the other side")
-  print("DAT:", 1.0/response)
+  #print("Saying hello to the other side")
+  #print("DAT:", 1.0/response)
   

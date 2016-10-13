@@ -8,6 +8,9 @@ class BAD_EVENTS(Enum):
   STUDENT_CODE_ERROR    = "Student Code Crashed"
   STUDENT_CODE_TIMEOUT  = "Student Code Timed Out"
   UNKNOWN_PROCESS       = "Unknown State Manager process name"
+  UDP_SEND_ERROR        = "UDPSend Process Crashed"
+  UDP_RECV_ERROR        = "UDPRecv Process Crashed"
+
 
 @unique
 class PROCESS_NAMES(Enum):

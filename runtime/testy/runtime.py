@@ -101,14 +101,16 @@ def startStateManager(badThingsQueue, stateQueue, runtimePipe):
     badThingsQueue.put(BadThing(sys.exc_info(), None))
 def startUDPSender(badThingsQueue, stateQueue, smPipe):
   try:
-    sendClass = Ansible.udpSendClass(badThingsQueue, stateQueue, smPipe)
+    print("starting udp sender")
+    sendClass = Ansible.UDPSendClass(badThingsQueue, stateQueue, smPipe)
     sendClass.start()
   except Exception:
     badThingsQueue.put(BadThing(sys.exc_info(), None))
 
 def startUDPReceiver(badThingsQueue, stateQueue, smPipe):
   try:
-    recvClass = Ansible.udpRecvClass(badThingsQueue, stateQueue, smPipe)
+    print("starting udp recver")
+    recvClass = Ansible.UDPRecvClass(badThingsQueue, stateQueue, smPipe)
     recvClass.start()
   except Exception:
     badThingsQueue.put(BadThing(sys.exc_info(), None))

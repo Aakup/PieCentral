@@ -26,3 +26,13 @@ def receiver(port, receive_queue):
 		receive_queue[0]=msg
 
 #write tests
+sender_thread = threading.Thread(target = sender, name = "fake dawn sender", args = (send_port, data))
+recv_thread = threading.Thread(target = receiver, name = "fake dawn receiver", args = (recv_port, data))
+sender_thread.daemon = True
+recv_thread.daemon = True
+recv_thread.start()
+sender_thread.start()
+while True:
+	print("BRANDON LEE")
+	print(data)
+	time.sleep(1)
