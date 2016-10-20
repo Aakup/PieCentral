@@ -88,12 +88,12 @@ class UDPSendClass(AnsibleHandler):
 
         while True:
             try:
-                stateQueue.put([SM_COMMANDS.SEND, 1])
+                stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, 1])
                 print("got to package data")
                 rawState = pipe.recv()
                 print("got a ready command from package data") 
-                if rawState == SM_COMMANDS.READY:
-                    stateQueue.put([SM_COMMANDS.SEND, 1])
+                if rawState == RUNTIME_CONFIG.PIPE_READY:
+                    stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, 1])
                 elif rawState:
                     packState = package(rawState, badThingsQueue)
                     self.sendBuffer.replace(pack_state) 
@@ -173,7 +173,7 @@ class UDPRecvClass(AnsibleHandler):
                 ready = pipe.recv()
                 if ready:
                     unpackagedData = unpackage(self.recvBuffer.get())
-                    stateQueue.put([SM_COMMANDS.STORE, unpackagedData])
+                    stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, unpackagedData])
             except Exception as e:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error:",  
