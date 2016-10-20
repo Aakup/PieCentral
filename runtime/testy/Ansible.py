@@ -53,7 +53,7 @@ class AnsibleHandler():
     def start(self):
         packagerThread = self.threadMaker(self.packagerFunc, self.packagerName)
         socketThread = self.threadMaker(self.socketFunc, self.socketName)
-        print("threads are starting")
+        print("threads are starting",self.packagerName)
         packagerThread.start()
         socketThread.start()
 
@@ -139,6 +139,7 @@ class UDPRecvClass(AnsibleHandler):
         Listens on the receive port and stores data into TwoBuffer to be shared
         with the unpackager.
         """
+
         host = socket.gethostname() #TODO: determine host between dawn-runtime comm
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         s.bind((host, UDPRecvClass.RECV_PORT))
@@ -178,3 +179,4 @@ class UDPRecvClass(AnsibleHandler):
                     "UDP sender thread has crashed with error:",  
                     event = BAD_EVENTS.UDP_RECV_ERROR, 
                     printStackTrace = True))
+                    
