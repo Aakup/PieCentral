@@ -53,7 +53,6 @@ class AnsibleHandler():
     def start(self):
         packagerThread = self.threadMaker(self.packagerFunc, self.packagerName)
         socketThread = self.threadMaker(self.socketFunc, self.socketName)
-        print("threads are starting",self.packagerName)
         packagerThread.start()
         socketThread.start()
 
@@ -89,9 +88,7 @@ class UDPSendClass(AnsibleHandler):
         while True:
             try:
                 stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, 1])
-                print("got to package data")
                 rawState = pipe.recv()
-                print("got a ready command from package data") 
                 if rawState == RUNTIME_CONFIG.PIPE_READY:
                     stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, 1])
                 elif rawState:
@@ -114,7 +111,6 @@ class UDPSendClass(AnsibleHandler):
             while True: 
                 try:
                     msg = self.sendBuffer.get()
-                    print("printing msg in sender" + str(msg))
                     if msg != 0: 
                         s.sendto(msg, (host, UDPSendClass.SEND_PORT))
                 except Exception:
@@ -145,7 +141,6 @@ class UDPRecvClass(AnsibleHandler):
         s.bind((host, UDPRecvClass.RECV_PORT))
         while True:
             try:
-                print("****&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&********")
                 data = s.recv(2048)
                 self.recvBuffer.replace(data)
             except Exception as e:

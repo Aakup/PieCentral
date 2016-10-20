@@ -207,4 +207,4 @@ def testSuccess(testFileName):
   return filecmp.cmp(expectedOutput, testOutput)
 
 if __name__ == "__main__":
-  runtimeTest()
+  runtime()
