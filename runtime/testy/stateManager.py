@@ -98,7 +98,7 @@ class StateManager(object):
       error = StudentAPIKeyError(self.dictErrorMessage(i, keys, currDict))
       self.processMapping[PROCESS_NAMES.STUDENT_CODE].send(error)
 
-  def send_ansible(self, TODODELETE):
+  def send_ansible(self):
     self.processMapping[PROCESS_NAMES.UDP_SEND_PROCESS].send(self.state)
 
   def recv_ansible(self, new_state):

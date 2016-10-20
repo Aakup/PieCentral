@@ -62,7 +62,7 @@ class AnsibleHandler():
             print("Packager thread failed to start")
         socketThread.start()
         while True:
-            pass
+            time.sleep(1)
 
 
 
@@ -96,10 +96,10 @@ class UDPSendClass(AnsibleHandler):
 
         while True:
             try:
-                stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, [1]])
+                stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, []])
                 rawState = pipe.recv()
                 if rawState == RUNTIME_CONFIG.PIPE_READY:
-                    stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, [1]])
+                    stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, []])
                 elif rawState:
                     packState = package(rawState, badThingsQueue)
                     self.sendBuffer.replace(packState) 
