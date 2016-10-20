@@ -51,10 +51,19 @@ class AnsibleHandler():
         return thread
 
     def start(self):
-        packagerThread = self.threadMaker(self.packagerFunc, self.packagerName)
+        try:
+            packagerThread = self.threadMaker(self.packagerFunc, self.packagerName)
+        except:
+            print("Packager thread failed to spawn")
         socketThread = self.threadMaker(self.socketFunc, self.socketName)
-        packagerThread.start()
+        try:
+            packagerThread.start()
+        except:
+            print("Packager thread failed to start")
         socketThread.start()
+        while True:
+            pass
+
 
 
 class UDPSendClass(AnsibleHandler):
@@ -87,13 +96,13 @@ class UDPSendClass(AnsibleHandler):
 
         while True:
             try:
-                stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, 1])
+                stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, [1]])
                 rawState = pipe.recv()
                 if rawState == RUNTIME_CONFIG.PIPE_READY:
-                    stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, 1])
+                    stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, [1]])
                 elif rawState:
                     packState = package(rawState, badThingsQueue)
-                    self.sendBuffer.replace(pack_state) 
+                    self.sendBuffer.replace(packState) 
             except Exception:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP packager thread has crashed with error:",  
@@ -135,7 +144,6 @@ class UDPRecvClass(AnsibleHandler):
         Listens on the receive port and stores data into TwoBuffer to be shared
         with the unpackager.
         """
-
         host = socket.gethostname() #TODO: determine host between dawn-runtime comm
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         s.bind((host, UDPRecvClass.RECV_PORT))

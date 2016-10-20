@@ -118,6 +118,7 @@ def startStateManager(badThingsQueue, stateQueue, runtimePipe):
 def startUDPSender(badThingsQueue, stateQueue, smPipe):
   try:
     sendClass = Ansible.UDPSendClass(badThingsQueue, stateQueue, smPipe)
+    print("started process from runtime")
     sendClass.start()
   except Exception:
     badThingsQueue.put(BadThing(sys.exc_info(), None))
