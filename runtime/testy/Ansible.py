@@ -51,15 +51,9 @@ class AnsibleHandler():
         return thread
 
     def start(self):
-        try:
-            packagerThread = self.threadMaker(self.packagerFunc, self.packagerName)
-        except:
-            print("Packager thread failed to spawn")
+        packagerThread = self.threadMaker(self.packagerFunc, self.packagerName)
         socketThread = self.threadMaker(self.socketFunc, self.socketName)
-        try:
-            packagerThread.start()
-        except:
-            print("Packager thread failed to start")
+        packagerThread.start()
         socketThread.start()
         while True:
             time.sleep(1)
@@ -128,6 +122,7 @@ class UDPSendClass(AnsibleHandler):
                     event = BAD_EVENTS.UDP_SEND_ERROR, 
                     printStackTrace = True))
 
+
 class UDPRecvClass(AnsibleHandler):
     RECV_PORT = 1236
     
@@ -149,8 +144,8 @@ class UDPRecvClass(AnsibleHandler):
         s.bind((host, UDPRecvClass.RECV_PORT))
         while True:
             try:
-                data = s.recv(2048)
-                self.recvBuffer.replace(data)
+                recv_data = s.recv(2048)
+                self.recvBuffer.replace(recv_data)
             except Exception as e:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP receiver thread has crashed with error:",  
@@ -169,14 +164,10 @@ class UDPRecvClass(AnsibleHandler):
             Currently simply returns the original data. Needs to be implemented
             """
             return data 
-
-        ready = False;
         while True:
             try:
-                ready = pipe.recv()
-                if ready:
-                    unpackagedData = unpackage(self.recvBuffer.get())
-                    stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, unpackagedData])
+                unpackagedData = unpackage(self.recvBuffer.get())
+                stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
             except Exception as e:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error:",  
