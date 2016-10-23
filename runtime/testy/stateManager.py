@@ -63,7 +63,6 @@ class StateManager(object):
   def addPipe(self, processName, pipe):
     self.processMapping[processName] = pipe
     pipe.send(RUNTIME_CONFIG.PIPE_READY.value)
-    print(processName)
 
   def createKey(self, keys):
     currDict = self.state

@@ -18,7 +18,7 @@ def mainTest_setup():
 
 def mainTest_main():
   response = Robot.getValue("incrementer")
-  #print("Get Info:", response)
+  print("Get Info:", response)
   response -= 1
 
   Robot.setValue(response, "incrementer")
