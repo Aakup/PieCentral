@@ -23,13 +23,6 @@ class PROCESS_NAMES(Enum):
   RUNTIME             = "runtime"
   UDP_SEND_PROCESS    = "udpSendProcess"
   UDP_RECEIVE_PROCESS = "udpReceiveProcess"
-
-@unique
-class THREAD_NAMES(Enum):
-  UDP_PACKAGER        = "udpPackager"
-  UDP_SENDER          = "udpSender"
-  UDP_RECEIVER        = "udpReceiver"
-  UDP_UNPACKAGER      = "udpUnpackager"
   HIBIKE              = "hibike"
 
 @unique

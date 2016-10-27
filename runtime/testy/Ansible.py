@@ -6,6 +6,13 @@ import sys
 
 from runtimeUtil import *
 
+@unique
+class THREAD_NAMES(Enum):
+  UDP_PACKAGER        = "udpPackager"
+  UDP_SENDER          = "udpSender"
+  UDP_RECEIVER        = "udpReceiver"
+  UDP_UNPACKAGER      = "udpUnpackager"
+
 class TwoBuffer(): 
     """Custom buffer class for handling states.
 
@@ -34,14 +41,17 @@ class AnsibleHandler():
     Initializes generalized instance variables for both UDP sender and receiver, and creates a callable
     method to initialize the two threads per UDP process and start them. 
     """
-    def __init__(self, packagerName, socketName, packager, socketThread, badThingsQueue, stateQueue, pipe):
-        self.packagerFunc = packager
+    def __init__(self, packagerName, packagerThread, socketName, socketThread,
+                 badThingsQueue, stateQueue, pipe, packagerHZ, socketHZ):
+        self.packagerFunc = packagerThread
         self.socketFunc = socketThread
         self.badThingsQueue = badThingsQueue
         self.stateQueue = stateQueue
         self.pipe = pipe
         self.packagerName = packagerName
         self.socketName = socketName
+        self.packagerHZ = packagerHZ
+        self.socketHZ = socketHZ
 
     def threadMaker(self, threadTarget, threadName):
         thread = threading.Thread(target = threadTarget,
@@ -55,10 +65,8 @@ class AnsibleHandler():
         socketThread = self.threadMaker(self.socketFunc, self.socketName)
         packagerThread.start()
         socketThread.start()
-        while True:
-            time.sleep(1)
-
-
+        packagerThread.join()
+        socketThread.join()
 
 class UDPSendClass(AnsibleHandler):
     SEND_PORT = 1235
@@ -67,8 +75,11 @@ class UDPSendClass(AnsibleHandler):
         self.sendBuffer = TwoBuffer()
         packagerName = THREAD_NAMES.UDP_PACKAGER
         sockSendName = THREAD_NAMES.UDP_SENDER
-        super().__init__(packagerName, sockSendName, UDPSendClass.packageData,
-                         UDPSendClass.udpSender, badThingsQueue, stateQueue, pipe)
+        packagerHZ = 20.0
+        senderHZ = 20.0
+        super().__init__(packagerName, UDPSendClass.packageData, sockSendName,
+                         UDPSendClass.udpSender, badThingsQueue, stateQueue, pipe,
+                         packagerHZ, senderHZ)
 
     def packageData(self, badThingsQueue, stateQueue, pipe):
         """Function run as a thread that packages data to be sent.
@@ -84,19 +95,16 @@ class UDPSendClass(AnsibleHandler):
             eventually be implemented to package the rawState into protos.
             """
             s = "TEST" 
-            b = bytearray()
-            b.extend(map(ord, s))
+            b = bytearray(map(ord, s))
             return b 
 
         while True:
             try:
                 stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, []])
                 rawState = pipe.recv()
-                if rawState == RUNTIME_CONFIG.PIPE_READY:
-                    stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, []])
-                elif rawState:
-                    packState = package(rawState, badThingsQueue)
-                    self.sendBuffer.replace(packState) 
+                packState = package(rawState, badThingsQueue)
+                self.sendBuffer.replace(packState)
+                time.sleep(1.0/self.packagerHZ)
             except Exception:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP packager thread has crashed with error:",  
@@ -109,19 +117,19 @@ class UDPSendClass(AnsibleHandler):
         The current state that has already been packaged is gotten from the 
         TwoBuffer, and is sent to Dawn via a UDP socket.
         """
-        host = socket.gethostname() #TODO: determine host in runtime-dawn comm
+        host = '127.0.0.1' #TODO: determine host in runtime-dawn comm
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             while True: 
                 try:
                     msg = self.sendBuffer.get()
                     if msg != 0: 
                         s.sendto(msg, (host, UDPSendClass.SEND_PORT))
+                    time.sleep(1.0/self.socketHZ)
                 except Exception:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error:",  
                     event = BAD_EVENTS.UDP_SEND_ERROR, 
                     printStackTrace = True))
-
 
 class UDPRecvClass(AnsibleHandler):
     RECV_PORT = 1236
@@ -130,8 +138,11 @@ class UDPRecvClass(AnsibleHandler):
         self.recvBuffer = TwoBuffer()        
         packName = THREAD_NAMES.UDP_UNPACKAGER
         sockRecvName = THREAD_NAMES.UDP_RECEIVER
-        super().__init__(packName, sockRecvName, UDPRecvClass.unpackageData,
-                         UDPRecvClass.udpReceiver, badThingsQueue, stateQueue, pipe)
+        unpackagerHZ = 20.0
+        receiverHZ = 20.0
+        super().__init__(packName, UDPRecvClass.unpackageData, sockRecvName,
+                         UDPRecvClass.udpReceiver, badThingsQueue, stateQueue, pipe,
+                         unpackagerHZ, receiverHZ)
 
     def udpReceiver(self, badThingsQueue, stateQueue, pipe):
         """Function to receive data from Dawn to local TwoBuffer
@@ -139,13 +150,14 @@ class UDPRecvClass(AnsibleHandler):
         Listens on the receive port and stores data into TwoBuffer to be shared
         with the unpackager.
         """
-        host = socket.gethostname() #TODO: determine host between dawn-runtime comm
+        host = '127.0.0.1' #TODO: determine host between dawn-runtime comm
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         s.bind((host, UDPRecvClass.RECV_PORT))
         while True:
             try:
                 recv_data = s.recv(2048)
                 self.recvBuffer.replace(recv_data)
+                time.sleep(1.0/self.socketHZ)
             except Exception as e:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP receiver thread has crashed with error:",  
@@ -168,9 +180,9 @@ class UDPRecvClass(AnsibleHandler):
             try:
                 unpackagedData = unpackage(self.recvBuffer.get())
                 stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
+                time.sleep(1.0/self.packagerHZ)
             except Exception as e:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error:",  
                     event = BAD_EVENTS.UDP_RECV_ERROR, 
                     printStackTrace = True))
-                    

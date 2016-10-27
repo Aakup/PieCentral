@@ -120,15 +120,15 @@ def startUDPSender(badThingsQueue, stateQueue, smPipe):
   try:
     sendClass = Ansible.UDPSendClass(badThingsQueue, stateQueue, smPipe)
     sendClass.start()
-  except Exception:
-    badThingsQueue.put(BadThing(sys.exc_info(), None))
+  except Exception as e:
+    badThingsQueue.put(BadThing(sys.exc_info(), str(e), event=BAD_EVENTS.UDP_SEND_ERROR))
 
 def startUDPReceiver(badThingsQueue, stateQueue, smPipe):
   try:
     recvClass = Ansible.UDPRecvClass(badThingsQueue, stateQueue, smPipe)
     recvClass.start()
-  except Exception:
-    badThingsQueue.put(BadThing(sys.exc_info(), None))
+  except Exception as e:
+    badThingsQueue.put(BadThing(sys.exc_info(), str(e), event=BAD_EVENTS.UDP_RECEIVE_ERROR))
 
 def processFactory(badThingsQueue, stateQueue, stdoutRedirect = None):
   def spawnProcessHelper(processName, helper, *args):

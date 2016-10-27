@@ -2,12 +2,13 @@ import socket
 import threading
 import queue
 import time
+
 data = [0]
 send_port = 1236
 recv_port = 1235
 
 def sender(port, send_queue):
-	host = socket.gethostname()
+	host = '127.0.0.1'
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		while True:
 			msg = None
@@ -16,8 +17,9 @@ def sender(port, send_queue):
 			b.extend(map(ord, string))
 			msg = bytes(b)
 			s.sendto(msg, (host, send_port))
+
 def receiver(port, receive_queue):
-	host = socket.gethostname()
+	host = '127.0.0.1'
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.bind((host, recv_port))
 	while True:
@@ -30,6 +32,8 @@ sender_thread.daemon = True
 recv_thread.daemon = True
 recv_thread.start()
 sender_thread.start()
+
+#Just Here for testing, should not be run regularly
 while True:
 	print(data)
 	time.sleep(1)
