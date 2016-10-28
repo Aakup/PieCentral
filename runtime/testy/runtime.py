@@ -167,6 +167,8 @@ def runtimeTest():
       try:
         spawnProcess(PROCESS_NAMES.STATE_MANAGER, startStateManager)
         spawnProcess(PROCESS_NAMES.HIBIKE, startHibike)
+        spawnProcess(PROCESS_NAMES.UDP_SEND_PROCESS, startUDPSender)
+        spawnProcess(PROCESS_NAMES.UDP_RECEIVE_PROCESS, startUDPReceiver)
         while True:
           if restartCount >= 3:
             break

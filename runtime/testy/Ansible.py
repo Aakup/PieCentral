@@ -88,7 +88,7 @@ class UDPSendClass(AnsibleHandler):
         by the package function, defined internally. The packaged data is then placed 
         back into the TwoBuffer replacing the previous state.
         """
-        def package(state, badThingsQueue):
+        def package(state):
             """Helper function that packages the current state.
 
             Currently this function converts the input into bytes. This will
@@ -100,11 +100,14 @@ class UDPSendClass(AnsibleHandler):
 
         while True:
             try:
+                nextCall = time.time()
                 stateQueue.put([SM_COMMANDS.SEND_ANSIBLE, []])
                 rawState = pipe.recv()
-                packState = package(rawState, badThingsQueue)
+                packState = package(rawState)
                 self.sendBuffer.replace(packState)
-                time.sleep(1.0/self.packagerHZ)
+                nextCall += 1.0/self.packagerHZ
+                if (nextCall > time.time()):
+                    time.sleep(nextCall - time.time())
             except Exception:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP packager thread has crashed with error:",  
@@ -121,10 +124,13 @@ class UDPSendClass(AnsibleHandler):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             while True: 
                 try:
+                    nextCall = time.time()
                     msg = self.sendBuffer.get()
                     if msg != 0: 
                         s.sendto(msg, (host, UDPSendClass.SEND_PORT))
-                    time.sleep(1.0/self.socketHZ)
+                    nextCall += 1.0/self.socketHZ
+                    if (nextCall > time.time()):
+                        time.sleep(nextCall - time.time())
                 except Exception:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error:",  
@@ -155,14 +161,17 @@ class UDPRecvClass(AnsibleHandler):
         s.bind((host, UDPRecvClass.RECV_PORT))
         while True:
             try:
+                nextCall = time.time()
                 recv_data = s.recv(2048)
                 self.recvBuffer.replace(recv_data)
-                time.sleep(1.0/self.socketHZ)
+                nextCall += 1.0/self.socketHZ
+                if (nextCall > time.time()):
+                    time.sleep(nextCall - time.time())
             except Exception as e:
-                    badThingsQueue.put(BadThing(sys.exc_info(), 
-                    "UDP receiver thread has crashed with error:",  
-                    event = BAD_EVENTS.UDP_RECV_ERROR, 
-                    printStackTrace = True))
+                badThingsQueue.put(BadThing(sys.exc_info(), 
+                "UDP receiver thread has crashed with error:",  
+                event = BAD_EVENTS.UDP_RECV_ERROR, 
+                printStackTrace = True))
 
     def unpackageData(self, badThingsQueue, stateQueue, pipe):
         """Unpackages data from proto and sends to stateManager on the SM stateQueue
@@ -178,9 +187,12 @@ class UDPRecvClass(AnsibleHandler):
             return data 
         while True:
             try:
+                nextCall = time.time()
                 unpackagedData = unpackage(self.recvBuffer.get())
                 stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
-                time.sleep(1.0/self.packagerHZ)
+                nextCall += 1.0/self.packagerHZ
+                if (nextCall > time.time()):
+                    time.sleep(nextCall - time.time())
             except Exception as e:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error:",  
