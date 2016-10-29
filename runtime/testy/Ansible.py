@@ -177,6 +177,13 @@ class UDPRecvClass(AnsibleHandler):
         self.stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
 
     def start(self):
+        """Overwrites start in parent class so it doesn't run in two threads
+
+        Creates a selector to block if the socket hasn't received any data since
+        we set the socket to nonblocking. If it receives data, it then calls the
+        udpReceiver function to get the newest packet. Then it calls the unpackageData
+        function to unpackage and send to the stateQueue. 
+        """
         sel = selectors.DefaultSelector()
         sel.register(self.socket, selectors.EVENT_READ)
 
