@@ -1,8 +1,8 @@
 import socket
 import threading
 import time
-import random
 import sys
+import selectors
 
 from runtimeUtil import *
 
@@ -146,38 +146,31 @@ class UDPRecvClass(AnsibleHandler):
         sockRecvName = THREAD_NAMES.UDP_RECEIVER
         unpackagerHZ = 20.0
         receiverHZ = 20.0
+        host = '127.0.0.1' #TODO: determine host between dawn-runtime comm
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.bind((host, UDPRecvClass.RECV_PORT))
+        self.socket.setblocking(False)
         super().__init__(packName, UDPRecvClass.unpackageData, sockRecvName,
                          UDPRecvClass.udpReceiver, badThingsQueue, stateQueue, pipe,
                          unpackagerHZ, receiverHZ)
 
-    def udpReceiver(self, badThingsQueue, stateQueue, pipe):
+    def udpReceiver(self):
         """Function to receive data from Dawn to local TwoBuffer
 
-        Listens on the receive port and stores data into TwoBuffer to be shared
+        Reads from receive port and stores data into TwoBuffer to be shared
         with the unpackager.
         """
-        host = '127.0.0.1' #TODO: determine host between dawn-runtime comm
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-        s.bind((host, UDPRecvClass.RECV_PORT))
-        while True:
-            try:
-                nextCall = time.time()
-                recv_data = s.recv(2048)
-                self.recvBuffer.replace(recv_data)
-                nextCall += 1.0/self.socketHZ
-                if (nextCall > time.time()):
-                    time.sleep(nextCall - time.time())
-            except Exception as e:
-                badThingsQueue.put(BadThing(sys.exc_info(), 
-                "UDP receiver thread has crashed with error:",  
-                event = BAD_EVENTS.UDP_RECV_ERROR, 
-                printStackTrace = True))
+        try:
+            while True:
+                recv_data = self.socket.recv(2048)
+        except BlockingIOError:
+            self.recvBuffer.replace(recv_data)
 
-    def unpackageData(self, badThingsQueue, stateQueue, pipe):
+    def unpackageData(self):
         """Unpackages data from proto and sends to stateManager on the SM stateQueue
 
-        Sending data from dawn to stateManager is supported, the unpackage function is
-        currently unimplemented.  
+        Sending data from dawn to stateManager is supported, the unpackage
+        function is currently unimplemented.
         """
         def unpackage(data):
             """Function that takes a packaged proto and unpackages item
@@ -185,16 +178,23 @@ class UDPRecvClass(AnsibleHandler):
             Currently simply returns the original data. Needs to be implemented
             """
             return data 
-        while True:
-            try:
-                nextCall = time.time()
-                unpackagedData = unpackage(self.recvBuffer.get())
-                stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
-                nextCall += 1.0/self.packagerHZ
-                if (nextCall > time.time()):
-                    time.sleep(nextCall - time.time())
-            except Exception as e:
-                    badThingsQueue.put(BadThing(sys.exc_info(), 
-                    "UDP sender thread has crashed with error:",  
-                    event = BAD_EVENTS.UDP_RECV_ERROR, 
-                    printStackTrace = True))
+
+        unpackagedData = unpackage(self.recvBuffer.get())
+        self.stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
+
+    def start(self, badThingsQueue, stateQueue, pipe):
+        sel = selectors.DefaultSelector()
+        sel.register(self.socket, selectors.EVENT_READ)
+
+        try:
+            while True:
+                key, mask = sel.select(timeout=None)
+                socket, fd, events, data = key
+
+                self.udpReceiver()
+                self.unpackageData()
+        except Exception as e:
+            badThingsQueue.put(BadThing(sys.exc_info(),
+            "UDP receiver thread has crashed with error:",
+            event = BAD_EVENTS.UDP_RECV_ERROR,
+            printStackTrace = True))
