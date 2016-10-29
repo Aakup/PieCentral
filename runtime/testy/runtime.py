@@ -167,8 +167,6 @@ def runtimeTest():
       try:
         spawnProcess(PROCESS_NAMES.STATE_MANAGER, startStateManager)
         spawnProcess(PROCESS_NAMES.HIBIKE, startHibike)
-        spawnProcess(PROCESS_NAMES.UDP_SEND_PROCESS, startUDPSender)
-        spawnProcess(PROCESS_NAMES.UDP_RECEIVE_PROCESS, startUDPReceiver)
         while True:
           if restartCount >= 3:
             break
@@ -221,4 +219,5 @@ def startHibike(badThingsQueue, stateQueue, pipe):
     badThingsQueue.put(BadThing(sys.exc_info(), str(e)))
 
 if __name__ == "__main__":
+  runtimeTest()
   runtime()
