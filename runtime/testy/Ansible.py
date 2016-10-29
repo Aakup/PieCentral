@@ -183,7 +183,6 @@ class UDPRecvClass(AnsibleHandler):
         try:
             while True:
                 event = sel.select()
-
                 self.udpReceiver()
                 self.unpackageData()
         except Exception as e:
