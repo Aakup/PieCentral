@@ -128,7 +128,7 @@ def startUDPReceiver(badThingsQueue, stateQueue, smPipe):
     recvClass = Ansible.UDPRecvClass(badThingsQueue, stateQueue, smPipe)
     recvClass.start()
   except Exception as e:
-    badThingsQueue.put(BadThing(sys.exc_info(), str(e), event=BAD_EVENTS.UDP_RECEIVE_ERROR))
+    badThingsQueue.put(BadThing(sys.exc_info(), str(e), event=BAD_EVENTS.UDP_RECV_ERROR))
 
 def processFactory(badThingsQueue, stateQueue, stdoutRedirect = None):
   def spawnProcessHelper(processName, helper, *args):

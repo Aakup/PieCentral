@@ -130,7 +130,7 @@ class UDPSendClass(AnsibleHandler):
                         time.sleep(nextCall - time.time())
                 except Exception:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
-                    "UDP sender thread has crashed with error:",  
+                    "UDP sender thread has crashed with error: " + str(e),  
                     event = BAD_EVENTS.UDP_SEND_ERROR, 
                     printStackTrace = True))
 
@@ -176,19 +176,18 @@ class UDPRecvClass(AnsibleHandler):
         unpackagedData = unpackage(self.recvBuffer.get())
         self.stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
 
-    def start(self, badThingsQueue, stateQueue, pipe):
+    def start(self):
         sel = selectors.DefaultSelector()
         sel.register(self.socket, selectors.EVENT_READ)
 
         try:
             while True:
-                key, mask = sel.select(timeout=None)
-                socket, fd, events, data = key
+                event = sel.select()
 
                 self.udpReceiver()
                 self.unpackageData()
         except Exception as e:
-            badThingsQueue.put(BadThing(sys.exc_info(),
-            "UDP receiver thread has crashed with error:",
+            self.badThingsQueue.put(BadThing(sys.exc_info(),
+            "UDP receiver thread has crashed with error: " + str(e),
             event = BAD_EVENTS.UDP_RECV_ERROR,
             printStackTrace = True))
