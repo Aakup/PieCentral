@@ -8,12 +8,12 @@ from runtimeUtil import *
 
 @unique
 class THREAD_NAMES(Enum):
-  UDP_PACKAGER        = "udpPackager"
-  UDP_SENDER          = "udpSender"
-  UDP_RECEIVER        = "udpReceiver"
-  UDP_UNPACKAGER      = "udpUnpackager"
+    UDP_PACKAGER        = "udpPackager"
+    UDP_SENDER          = "udpSender"
+    UDP_RECEIVER        = "udpReceiver"
+    UDP_UNPACKAGER      = "udpUnpackager"
 
-class TwoBuffer(): 
+class TwoBuffer():
     """Custom buffer class for handling states.
 
     Holds two states, one which is updated and one that is sent. A list is used because
@@ -42,7 +42,7 @@ class AnsibleHandler():
     method to initialize the two threads per UDP process and start them. 
     """
     def __init__(self, packagerName, packagerThread, socketName, socketThread,
-                 badThingsQueue, stateQueue, pipe, packagerHZ, socketHZ):
+                 badThingsQueue, stateQueue, pipe):
         self.packagerFunc = packagerThread
         self.socketFunc = socketThread
         self.badThingsQueue = badThingsQueue
@@ -50,13 +50,11 @@ class AnsibleHandler():
         self.pipe = pipe
         self.packagerName = packagerName
         self.socketName = socketName
-        self.packagerHZ = packagerHZ
-        self.socketHZ = socketHZ
 
     def threadMaker(self, threadTarget, threadName):
-        thread = threading.Thread(target = threadTarget,
-                                  name = threadName,
-                                  args = (self, self.badThingsQueue, self.stateQueue, self.pipe))
+        thread = threading.Thread(target=threadTarget,
+                                  name=threadName,
+                                  args=(self, self.badThingsQueue, self.stateQueue, self.pipe))
         thread.daemon = True
         return thread
 
@@ -70,16 +68,15 @@ class AnsibleHandler():
 
 class UDPSendClass(AnsibleHandler):
     SEND_PORT = 1235
+    packagerHZ = 20.0
+    socketHZ = 20.0
 
     def __init__(self, badThingsQueue, stateQueue, pipe):
         self.sendBuffer = TwoBuffer()
         packagerName = THREAD_NAMES.UDP_PACKAGER
         sockSendName = THREAD_NAMES.UDP_SENDER
-        packagerHZ = 20.0
-        senderHZ = 20.0
         super().__init__(packagerName, UDPSendClass.packageData, sockSendName,
-                         UDPSendClass.udpSender, badThingsQueue, stateQueue, pipe,
-                         packagerHZ, senderHZ)
+                         UDPSendClass.udpSender, badThingsQueue, stateQueue, pipe)
 
     def packageData(self, badThingsQueue, stateQueue, pipe):
         """Function run as a thread that packages data to be sent.
@@ -139,20 +136,17 @@ class UDPSendClass(AnsibleHandler):
 
 class UDPRecvClass(AnsibleHandler):
     RECV_PORT = 1236
-    
+
     def __init__(self, badThingsQueue, stateQueue, pipe):
         self.recvBuffer = TwoBuffer()        
         packName = THREAD_NAMES.UDP_UNPACKAGER
         sockRecvName = THREAD_NAMES.UDP_RECEIVER
-        unpackagerHZ = 20.0
-        receiverHZ = 20.0
         host = '127.0.0.1' #TODO: determine host between dawn-runtime comm
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((host, UDPRecvClass.RECV_PORT))
         self.socket.setblocking(False)
         super().__init__(packName, UDPRecvClass.unpackageData, sockRecvName,
-                         UDPRecvClass.udpReceiver, badThingsQueue, stateQueue, pipe,
-                         unpackagerHZ, receiverHZ)
+                         UDPRecvClass.udpReceiver, badThingsQueue, stateQueue, pipe)
 
     def udpReceiver(self):
         """Function to receive data from Dawn to local TwoBuffer

@@ -6,17 +6,22 @@ import time
 data = [0]
 send_port = 1236
 recv_port = 1235
+dawn_hz = 10
 
 def sender(port, send_queue):
 	host = '127.0.0.1'
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		while True:
+			next_call = time.time()
 			msg = None
 			string = "From Dawn" 
 			b = bytearray()
 			b.extend(map(ord, string))
 			msg = bytes(b)
 			s.sendto(msg, (host, send_port))
+			next_call += 1.0/dawn_hz
+			if next_call > time.time():
+				time.sleep(next_call - time.time())
 
 def receiver(port, receive_queue):
 	host = '127.0.0.1'
