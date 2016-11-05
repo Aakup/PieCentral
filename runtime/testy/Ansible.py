@@ -3,8 +3,18 @@ import threading
 import time
 import sys
 import selectors
+import runtime_pb2
+import ansible_pb2
 
 from runtimeUtil import *
+
+stateToEnum = {0:runtime_pb2.RuntimeData.STUDENT_CRASHED,
+        1:runtime_pb2.RuntimeData.STUDENT_RUNNING,
+        2:runtime_pb2.RuntimeData.STUDENT_STOPPED,
+        3:runtime_pb2.RuntimeData.TELEOP,
+        4:runtime_pb2.RuntimeData.AUTO,
+        5:runtime_pb2.RuntimeData.ESTOP
+        }
 
 @unique
 class THREAD_NAMES(Enum):
@@ -91,10 +101,27 @@ class UDPSendClass(AnsibleHandler):
             Currently this function converts the input into bytes. This will
             eventually be implemented to package the rawState into protos.
             """
-            s = "TEST" 
+            """s = "TEST" 
             b = bytearray(map(ord, s))
             return b 
-
+            """
+            try:
+                proto_message = runtime_pb2.RuntimeData()
+                for devID, devVal in state.items(): #Parse through entire state and package it
+                    if(devID == 'studentCodeState'):
+                        proto_message.robot_state = stateToEnum[devVal] #check if we are dealing with sensor data or student code state
+                    elif devID == 'limit_switch':
+                        test_sensor = proto_message.sensor_data.add() #Create new submessage for each sensor and add corresponding values
+                        test_sensor.device_name = devID
+                        test_sensor.device_type = devVal[0]
+                        test_sensor.value = devVal[1]
+                        test_sensor.uid = devVal[2]
+                return bytes(proto_message.SerializeToString()) #return the serialized data as bytes to be sent to Dawn
+            except Exception:
+                badThingsQueue.put(BadThing(sys.exc_info(), 
+                    "UDP packager thread has crashed with error:",  
+                    event = BAD_EVENTS.UDP_SEND_ERROR, 
+                    printStackTrace = True))
         while True:
             try:
                 nextCall = time.time()
@@ -104,7 +131,10 @@ class UDPSendClass(AnsibleHandler):
                 self.sendBuffer.replace(packState)
                 nextCall += 1.0/self.packagerHZ
                 if (nextCall > time.time()):
-                    time.sleep(nextCall - time.time())
+                    try:
+                        time.sleep(nextCall - time.time())
+                    except ValueError:
+                        continue
             except Exception:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP packager thread has crashed with error:",  
@@ -127,7 +157,10 @@ class UDPSendClass(AnsibleHandler):
                         s.sendto(msg, (host, UDPSendClass.SEND_PORT))
                     nextCall += 1.0/self.socketHZ
                     if (nextCall > time.time()):
-                        time.sleep(nextCall - time.time())
+                        try:
+                            time.sleep(nextCall - time.time())
+                        except ValueError:
+                            continue
                 except Exception:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error: " + str(e),  
@@ -189,9 +222,15 @@ class UDPRecvClass(AnsibleHandler):
 
         try:
             while True:
+                nextCall = time.time()
                 event = sel.select()
                 self.udpReceiver()
                 self.unpackageData()
+                if (nextCall > time.time()):
+                    try:
+                        time.sleep(nextCall - time.time())
+                    except ValueError:
+                        continue
         except Exception as e:
             self.badThingsQueue.put(BadThing(sys.exc_info(),
             "UDP receiver thread has crashed with error: " + str(e),

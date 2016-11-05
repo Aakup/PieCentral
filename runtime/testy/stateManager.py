@@ -57,7 +57,9 @@ class StateManager(object):
      "list1" : [70, "five", 14.3],
      "string1" : "abcde",
      "runtime_meta" : {"studentCode_main_count" : 0},
-     "hibike" : {"device_subscribed" : 0}
+     "hibike" : {"device_subscribed" : 0},
+     "studentCodeState": 2,
+     "limit_switch": ["lmsw", .5, 123456]
     }
 
   def addPipe(self, processName, pipe):
