@@ -111,8 +111,8 @@ class StateManager(object):
   def send_ansible(self):
     self.processMapping[PROCESS_NAMES.UDP_SEND_PROCESS].send(self.state)
 
-  def recv_ansible(self, new_state):
-    self.state["bytes"] = new_state
+  def recv_ansible(self, new_data):
+    self.state.update(new_data)
 
   def studentCodeTick(self):
     self.state["runtime_meta"]["studentCode_main_count"] += 1

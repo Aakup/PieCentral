@@ -107,8 +107,8 @@ class UDPSendClass(AnsibleHandler):
             """
             try:
                 proto_message = runtime_pb2.RuntimeData()
-                for devID, devVal in state.items(): #Parse through entire state and package it
-                    if(devID == 'studentCodeState'):
+                for devID, devVal in state.items(): 
+                    if (devID == 'studentCodeState'):
                         proto_message.robot_state = stateToEnum[devVal] #check if we are dealing with sensor data or student code state
                     elif devID == 'limit_switch':
                         test_sensor = proto_message.sensor_data.add() #Create new submessage for each sensor and add corresponding values
@@ -116,7 +116,7 @@ class UDPSendClass(AnsibleHandler):
                         test_sensor.device_type = devVal[0]
                         test_sensor.value = devVal[1]
                         test_sensor.uid = devVal[2]
-                return bytes(proto_message.SerializeToString()) #return the serialized data as bytes to be sent to Dawn
+                return proto_message.SerializeToString() #return the serialized data as bytes to be sent to Dawn
             except Exception:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP packager thread has crashed with error:",  
@@ -204,6 +204,19 @@ class UDPRecvClass(AnsibleHandler):
 
             Currently simply returns the original data. Needs to be implemented
             """
+
+            """
+            unpackaged_data = {}
+            received_proto = ansible_pb2.DawnData()
+            received_proto.ParseFromString(data)
+            for gamepad in received_proto.gamepads:
+                gamepad_dict = {i : axis for i, axis in zip(range(0,4), gamepad.axes)}
+                gamepad_dict.update({i : button for i, button in zip(range(0,20),gamepad.buttons)})
+                unpackaged_data[gamepad.index] = gamepad_dict
+            return unpackaged_data
+            """
+
+
             return data 
 
         unpackagedData = unpackage(self.recvBuffer.get())
