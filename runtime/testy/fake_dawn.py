@@ -3,11 +3,21 @@ import threading
 import queue
 import time
 import runtime_pb2
+import ansible_pb2
 
 data = [0]
 send_port = 1236
 recv_port = 1235
 dawn_hz = 10
+
+def dawn_packager(data):
+    proto_message = ansible_pb2.DawnData()
+    proto_message.student_code_status = 1
+    test_gamepad = proto_message.gamepads.add() #Create new submessage for each sensor and add corresponding values
+    test_gamepad.index = 0
+    test_gamepad.axes.append(.5)
+    test_gamepad.buttons.append(True)
+    return proto_message.SerializeToString() #return the serialized data as bytes to be sent to Dawn
 
 def sender(port, send_queue):
     host = '127.0.0.1'
@@ -15,12 +25,13 @@ def sender(port, send_queue):
         while True:
             next_call = time.time()
             msg = None
-            string = "From Dawn"
+            """string = "From Dawn"
             b = bytearray()
             b.extend(map(ord, string))
             msg = bytes(b)
             msg = input("Press Key to Toggle") #TODO Get Rid of, Simply for Testing
-            print("TEST")
+            print("TEST")"""
+            msg = dawn_packager(0)
             s.sendto(msg, (host, send_port))
             next_call += 1.0/dawn_hz
             if next_call > time.time():

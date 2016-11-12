@@ -204,21 +204,17 @@ class UDPRecvClass(AnsibleHandler):
 
             Currently simply returns the original data. Needs to be implemented
             """
-
-            """
             unpackaged_data = {}
             received_proto = ansible_pb2.DawnData()
             received_proto.ParseFromString(data)
+            unpackaged_data["student_code_status"] = received_proto.student_code_status
             for gamepad in received_proto.gamepads:
-                gamepad_dict = {i : axis for i, axis in zip(range(0,4), gamepad.axes)}
+                gamepad_dict = {}
+                gamepad_dict["axes"] = {i : axis for i, axis in zip(range(0,4), gamepad.axes)}
                 gamepad_dict.update({i : button for i, button in zip(range(0,20),gamepad.buttons)})
                 unpackaged_data[gamepad.index] = gamepad_dict
             return unpackaged_data
-            """
-
-
-            return data 
-
+            
         unpackagedData = unpackage(self.recvBuffer.get())
         self.stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
 
