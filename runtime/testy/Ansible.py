@@ -100,25 +100,26 @@ class UDPSendClass(AnsibleHandler):
 
             Parses through the state dictionary in key value pairs, creates a new message in the proto
             for each sensor, and adds corresponding data to each field. Currently only supports a single limit_switch
-            switch as the rest of the state is just test fields. 
+            switch as the rest of the state is just test fields.
             """
             try:
                 proto_message = runtime_pb2.RuntimeData()
-                for devID, devVal in state.items(): 
+                for devID, devVal in state.items():
                     if (devID == 'studentCodeState'):
-                        proto_message.robot_state = stateToEnum[devVal] #check if we are dealing with sensor data or student code state
+                        proto_message.robot_state = stateToEnum[devVal[0]] #check if we are dealing with sensor data or student code state
                     elif devID == 'limit_switch':
                         test_sensor = proto_message.sensor_data.add() #Create new submessage for each sensor and add corresponding values
                         test_sensor.device_name = devID
-                        test_sensor.device_type = devVal[0]
-                        test_sensor.value = devVal[1]
-                        test_sensor.uid = devVal[2]
+                        test_sensor.device_type = devVal[0][0]
+                        test_sensor.value = devVal[0][1]
+                        test_sensor.uid = devVal[0][2]
                 return proto_message.SerializeToString() #return the serialized data as bytes to be sent to Dawn
-            except Exception:
-                badThingsQueue.put(BadThing(sys.exc_info(), 
-                    "UDP packager thread has crashed with error:",  
-                    event = BAD_EVENTS.UDP_SEND_ERROR, 
+            except Exception as e:
+                badThingsQueue.put(BadThing(sys.exc_info(),
+                    "UDP packager thread has crashed with error:" + str(e),
+                    event = BAD_EVENTS.UDP_SEND_ERROR,
                     printStackTrace = True))
+
         while True:
             try:
                 nextCall = time.time()
@@ -132,9 +133,9 @@ class UDPSendClass(AnsibleHandler):
                         time.sleep(nextCall - time.time())
                     except ValueError:
                         continue
-            except Exception:
+            except Exception as e:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
-                    "UDP packager thread has crashed with error:",  
+                    "UDP packager thread has crashed with error:" + str(e),  
                     event = BAD_EVENTS.UDP_SEND_ERROR, 
                     printStackTrace = True))
 
@@ -150,7 +151,7 @@ class UDPSendClass(AnsibleHandler):
                 try:
                     nextCall = time.time()
                     msg = self.sendBuffer.get()
-                    if msg != 0: 
+                    if msg != 0 and msg != None: 
                         s.sendto(msg, (host, UDPSendClass.SEND_PORT))
                     nextCall += 1.0/self.socketHZ
                     if (nextCall > time.time()):
@@ -197,14 +198,14 @@ class UDPRecvClass(AnsibleHandler):
         function is currently unimplemented.
         """
         def unpackage(data):
-            """Function that takes a packaged proto and unpackages item
+            """Function that takes a packaged proto and unpackages the item
 
             Parses through the python pseudo-class created by the protobuf and stores it into a dictionary.
             All of the axes data and the button data, enumerates each value to follow a mapping shared by dawn,
             and stores it in the dictionary with the gamepad index as a key.
 
-            student code status is also stored in this dictionary. This dictionary is added to the overall state 
-            through the update method. 
+            student code status is also stored in this dictionary. This dictionary is added to the overall state
+            through the update method implemented in state manager.
             """
             unpackaged_data = {}
             received_proto = ansible_pb2.DawnData()
@@ -213,10 +214,10 @@ class UDPRecvClass(AnsibleHandler):
             for gamepad in received_proto.gamepads:
                 gamepad_dict = {}
                 gamepad_dict["axes"] = {i : axis for i, axis in zip(range(0,4), gamepad.axes)}
-                gamepad_dict.update({i : button for i, button in zip(range(0,20),gamepad.buttons)})
-                unpackaged_data[gamepad.index] = gamepad_dict
+                gamepad_dict["buttons"] = {i : button for i, button in zip(range(0,20),gamepad.buttons)}
+                unpackaged_data[gamepad.index] = [gamepad_dict, time.time()]
             return unpackaged_data
-            
+
         unpackagedData = unpackage(self.recvBuffer.get())
         self.stateQueue.put([SM_COMMANDS.RECV_ANSIBLE, [unpackagedData]])
 

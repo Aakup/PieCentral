@@ -10,6 +10,7 @@ class BAD_EVENTS(Enum):
   STUDENT_CODE_TIMEOUT      = "Student Code Timed Out"
   UNKNOWN_PROCESS           = "Unknown State Manager process name"
   STATE_MANAGER_KEY_ERROR   = "Error accessing key in State Manager"
+  STATE_MANAGER_CRASH       = "State Manager has Crashed"
   END_EVENT                 = "Process terminated" # Used for testing
   UDP_SEND_ERROR            = "UDPSend Process Crashed"
   UDP_RECV_ERROR            = "UDPRecv Process Crashed"
@@ -56,9 +57,10 @@ class SM_COMMANDS(Enum):
   SEND_ANSIBLE        = ()
   RECV_ANSIBLE        = ()
   CREATE_KEY          = ()
+  GET_TIME            = ()
 
 class RUNTIME_CONFIG(Enum):
-  STUDENT_CODE_TIMEOUT        = 3
+  STUDENT_CODE_TIMELIMIT      = 1
   STUDENT_CODE_HZ             = 20 # Number of times to execute studentCode.main per second
   DEBUG_DELIMITER_STRING      = "****************** RUNTIME DEBUG ******************"
   PIPE_READY                  = ["ready"]
