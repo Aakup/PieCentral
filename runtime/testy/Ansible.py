@@ -98,12 +98,9 @@ class UDPSendClass(AnsibleHandler):
         def package(state):
             """Helper function that packages the current state.
 
-            Currently this function converts the input into bytes. This will
-            eventually be implemented to package the rawState into protos.
-            """
-            """s = "TEST" 
-            b = bytearray(map(ord, s))
-            return b 
+            Parses through the state dictionary in key value pairs, creates a new message in the proto
+            for each sensor, and adds corresponding data to each field. Currently only supports a single limit_switch
+            switch as the rest of the state is just test fields. 
             """
             try:
                 proto_message = runtime_pb2.RuntimeData()
@@ -202,7 +199,12 @@ class UDPRecvClass(AnsibleHandler):
         def unpackage(data):
             """Function that takes a packaged proto and unpackages item
 
-            Currently simply returns the original data. Needs to be implemented
+            Parses through the python pseudo-class created by the protobuf and stores it into a dictionary.
+            All of the axes data and the button data, enumerates each value to follow a mapping shared by dawn,
+            and stores it in the dictionary with the gamepad index as a key.
+
+            student code status is also stored in this dictionary. This dictionary is added to the overall state 
+            through the update method. 
             """
             unpackaged_data = {}
             received_proto = ansible_pb2.DawnData()
