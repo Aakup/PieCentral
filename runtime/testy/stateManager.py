@@ -125,7 +125,6 @@ class StateManager(object):
 
   def recv_ansible(self, new_data):
     self.state.update(new_data)
-    print(new_data)
 
   def getTimestamp(self, keys):
     currDict = self.state

@@ -106,14 +106,14 @@ class UDPSendClass(AnsibleHandler):
                 proto_message = runtime_pb2.RuntimeData()
                 for devID, devVal in state.items():
                     if (devID == 'studentCodeState'):
-                        proto_message.robot_state = stateToEnum[devVal[0]] #check if we are dealing with sensor data or student code state
+                        proto_message.robot_state = stateToEnum[devVal[0]] 
                     elif devID == 'limit_switch':
-                        test_sensor = proto_message.sensor_data.add() #Create new submessage for each sensor and add corresponding values
+                        test_sensor = proto_message.sensor_data.add() 
                         test_sensor.device_name = devID
                         test_sensor.device_type = devVal[0][0]
                         test_sensor.value = devVal[0][1]
                         test_sensor.uid = devVal[0][2]
-                return proto_message.SerializeToString() #return the serialized data as bytes to be sent to Dawn
+                return proto_message.SerializeToString() 
             except Exception as e:
                 badThingsQueue.put(BadThing(sys.exc_info(),
                     "UDP packager thread has crashed with error:" + str(e),
