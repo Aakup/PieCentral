@@ -184,8 +184,6 @@ class UDPRecvClass(AnsibleHandler):
     def unpackageData(self):
         """Unpackages data from proto and sends to stateManager on the SM stateQueue
 
-        Sending data from dawn to stateManager is supported, the unpackage
-        function is currently unimplemented.
         """
         def unpackage(data):
             """Function that takes a packaged proto and unpackages the item

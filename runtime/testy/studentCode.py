@@ -125,7 +125,8 @@ def infiniteMainLoop_main():
   print("main")
   while True:
     time.sleep(.1)
-
+"""
 while True:
     if(Robot.getValue("gamepads")[0]["buttons"][0]):
         Robot.setValue(SENSORNAME)
+        """
