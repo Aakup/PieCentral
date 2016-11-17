@@ -55,5 +55,7 @@ recv_thread.start()
 sender_thread.start()
 
 #Just Here for testing, should not be run regularly
-while True:
-    time.sleep(1)
+if __name__ == "__main__":
+    while True:
+    	#TODO deleted print statement print(data)
+    	time.sleep(1)
