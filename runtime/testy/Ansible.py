@@ -8,14 +8,6 @@ import ansible_pb2
 
 from runtimeUtil import *
 
-stateToEnum = {0:runtime_pb2.RuntimeData.STUDENT_CRASHED,
-        1:runtime_pb2.RuntimeData.STUDENT_RUNNING,
-        2:runtime_pb2.RuntimeData.STUDENT_STOPPED,
-        3:runtime_pb2.RuntimeData.TELEOP,
-        4:runtime_pb2.RuntimeData.AUTO,
-        5:runtime_pb2.RuntimeData.ESTOP
-        }
-
 @unique
 class THREAD_NAMES(Enum):
     UDP_PACKAGER        = "udpPackager"
@@ -106,7 +98,7 @@ class UDPSendClass(AnsibleHandler):
                 proto_message = runtime_pb2.RuntimeData()
                 for devID, devVal in state.items():
                     if (devID == 'studentCodeState'):
-                        proto_message.robot_state = stateToEnum[devVal[0]] #check if we are dealing with sensor data or student code state
+                        proto_message.robot_state = devVal[0] #check if we are dealing with sensor data or student code state
                     elif devID == 'limit_switch':
                         test_sensor = proto_message.sensor_data.add() #Create new submessage for each sensor and add corresponding values
                         test_sensor.device_name = devID
@@ -119,7 +111,6 @@ class UDPSendClass(AnsibleHandler):
                     "UDP packager thread has crashed with error:" + str(e),
                     event = BAD_EVENTS.UDP_SEND_ERROR,
                     printStackTrace = True))
-
         while True:
             try:
                 nextCall = time.time()
@@ -151,14 +142,13 @@ class UDPSendClass(AnsibleHandler):
                 try:
                     nextCall = time.time()
                     msg = self.sendBuffer.get()
-                    if msg != 0 and msg != None: 
+                    if msg != 0 and msg is not None: 
                         s.sendto(msg, (host, UDPSendClass.SEND_PORT))
                     nextCall += 1.0/self.socketHZ
-                    if (nextCall > time.time()):
-                        try:
-                            time.sleep(nextCall - time.time())
-                        except ValueError:
-                            continue
+                    try:
+                        time.sleep(nextCall - time.time())
+                    except ValueError:
+                        continue
                 except Exception:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error: " + str(e),  
@@ -213,8 +203,8 @@ class UDPRecvClass(AnsibleHandler):
             unpackaged_data["student_code_status"] = received_proto.student_code_status
             for gamepad in received_proto.gamepads:
                 gamepad_dict = {}
-                gamepad_dict["axes"] = {i : axis for i, axis in zip(range(0,4), gamepad.axes)}
-                gamepad_dict["buttons"] = {i : button for i, button in zip(range(0,20),gamepad.buttons)}
+                gamepad_dict["axes"] = dict(enumerate(gamepad.axes))
+                gamepad_dict["buttons"] = dict(enumerate(gamepad.buttons))
                 unpackaged_data[gamepad.index] = [gamepad_dict, time.time()]
             return unpackaged_data
 
@@ -238,11 +228,10 @@ class UDPRecvClass(AnsibleHandler):
                 event = sel.select()
                 self.udpReceiver()
                 self.unpackageData()
-                if (nextCall > time.time()):
-                    try:
-                        time.sleep(nextCall - time.time())
-                    except ValueError:
-                        continue
+                try:
+                    time.sleep(nextCall - time.time())
+                except ValueError:
+                    continue
         except Exception as e:
             self.badThingsQueue.put(BadThing(sys.exc_info(),
             "UDP receiver thread has crashed with error: " + str(e),

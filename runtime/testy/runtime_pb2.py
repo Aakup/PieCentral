@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='runtime.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\rruntime.proto\"\xa1\x02\n\x0bRuntimeData\x12\'\n\x0brobot_state\x18\x01 \x01(\x0e\x32\x12.RuntimeData.State\x12,\n\x0bsensor_data\x18\x02 \x03(\x0b\x32\x17.RuntimeData.SensorData\x1aR\n\nSensorData\x12\x13\n\x0b\x64\x65vice_type\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65vice_name\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\x12\x0b\n\x03uid\x18\x04 \x01(\x04\"g\n\x05State\x12\x13\n\x0fSTUDENT_CRASHED\x10\x00\x12\x13\n\x0fSTUDENT_RUNNING\x10\x01\x12\x13\n\x0fSTUDENT_STOPPED\x10\x02\x12\n\n\x06TELEOP\x10\x03\x12\x08\n\x04\x41UTO\x10\x04\x12\t\n\x05\x45STOP\x10\x05\"!\n\x07TCPData\x12\x16\n\x0e\x63onsole_output\x18\x01 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\rruntime.proto\"\xba\x02\n\x0bRuntimeData\x12\'\n\x0brobot_state\x18\x01 \x01(\x0e\x32\x12.RuntimeData.State\x12,\n\x0bsensor_data\x18\x02 \x03(\x0b\x32\x17.RuntimeData.SensorData\x1ak\n\nSensorData\x12\x13\n\x0b\x64\x65vice_type\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65vice_name\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\x12\x0b\n\x03uid\x18\x04 \x01(\x04\x12\x17\n\x0fint_device_type\x18\x05 \x01(\r\"g\n\x05State\x12\x13\n\x0fSTUDENT_CRASHED\x10\x00\x12\x13\n\x0fSTUDENT_RUNNING\x10\x01\x12\x13\n\x0fSTUDENT_STOPPED\x10\x02\x12\n\n\x06TELEOP\x10\x03\x12\x08\n\x04\x41UTO\x10\x04\x12\t\n\x05\x45STOP\x10\x05\"!\n\x07TCPData\x12\x16\n\x0e\x63onsole_output\x18\x01 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -58,8 +58,8 @@ _RUNTIMEDATA_STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=204,
-  serialized_end=307,
+  serialized_start=229,
+  serialized_end=332,
 )
 _sym_db.RegisterEnumDescriptor(_RUNTIMEDATA_STATE)
 
@@ -99,6 +99,13 @@ _RUNTIMEDATA_SENSORDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='int_device_type', full_name='RuntimeData.SensorData.int_device_type', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -112,7 +119,7 @@ _RUNTIMEDATA_SENSORDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=120,
-  serialized_end=202,
+  serialized_end=227,
 )
 
 _RUNTIMEDATA = _descriptor.Descriptor(
@@ -150,7 +157,7 @@ _RUNTIMEDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=18,
-  serialized_end=307,
+  serialized_end=332,
 )
 
 
@@ -180,8 +187,8 @@ _TCPDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=309,
-  serialized_end=342,
+  serialized_start=334,
+  serialized_end=367,
 )
 
 _RUNTIMEDATA_SENSORDATA.containing_type = _RUNTIMEDATA
