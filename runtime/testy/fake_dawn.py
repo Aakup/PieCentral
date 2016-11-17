@@ -13,11 +13,11 @@ dawn_hz = 10
 def dawn_packager(data):
     proto_message = ansible_pb2.DawnData()
     proto_message.student_code_status = 1
-    test_gamepad = proto_message.gamepads.add() #Create new submessage for each gamepad and add corresponding values
+    test_gamepad = proto_message.gamepads.add() 
     test_gamepad.index = 0
     test_gamepad.axes.append(.5)
     test_gamepad.buttons.append(True)
-    return proto_message.SerializeToString() #return the serialized data as bytes to be sent to runtime
+    return proto_message.SerializeToString()
 
 def sender(port, send_queue):
     host = '127.0.0.1'
