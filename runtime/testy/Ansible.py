@@ -210,12 +210,12 @@ class UDPRecvClass(AnsibleHandler):
             unpackaged_data = {}
             received_proto = ansible_pb2.DawnData()
             received_proto.ParseFromString(data)
-            unpackaged_data["student_code_status"] = received_proto.student_code_status
+            unpackaged_data["student_code_status"] = [received_proto.student_code_status, time.time()]
             for gamepad in received_proto.gamepads:
                 gamepad_dict = {}
                 gamepad_dict["axes"] = {i : axis for i, axis in zip(range(0,4), gamepad.axes)}
                 gamepad_dict["buttons"] = {i : button for i, button in zip(range(0,20),gamepad.buttons)}
-                unpackaged_data[gamepad.index] = [gamepad_dict, time.time()]
+                unpackaged_data["gamepads"] = {gamepad.index : [gamepad_dict, time.time()]}
             return unpackaged_data
 
         unpackagedData = unpackage(self.recvBuffer.get())
