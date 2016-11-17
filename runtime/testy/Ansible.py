@@ -136,7 +136,7 @@ class UDPSendClass(AnsibleHandler):
         The current state that has already been packaged is gotten from the 
         TwoBuffer, and is sent to Dawn via a UDP socket.
         """
-        host = '127.0.0.1' #TODO: determine host in runtime-dawn comm
+        host = '192.168.128.30' #TODO: Make this not hard coded
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             while True: 
                 try:
@@ -162,7 +162,7 @@ class UDPRecvClass(AnsibleHandler):
         self.recvBuffer = TwoBuffer()        
         packName = THREAD_NAMES.UDP_UNPACKAGER
         sockRecvName = THREAD_NAMES.UDP_RECEIVER
-        host = '127.0.0.1' #TODO: determine host between dawn-runtime comm
+        host = "" #TODO: determine host between dawn-runtime comm
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((host, UDPRecvClass.RECV_PORT))
         self.socket.setblocking(False)

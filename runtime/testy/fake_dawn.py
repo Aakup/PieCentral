@@ -28,8 +28,10 @@ def sender(port, send_queue):
             msg = dawn_packager(0)
             s.sendto(msg, (host, send_port))
             next_call += 1.0/dawn_hz
-            if next_call > time.time():
-                time.sleep(next_call - time.time())
+            try:
+                time.sleep(nextCall - time.time())
+            except ValueError:
+                continue
 
 def receiver(port, receive_queue):
     host = '127.0.0.1'
