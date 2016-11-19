@@ -230,3 +230,28 @@ class UDPRecvClass(AnsibleHandler):
             "UDP receiver thread has crashed with error: " + str(e),
             event = BAD_EVENTS.UDP_RECV_ERROR,
             printStackTrace = True))
+
+class TCPServerClass():
+    TCP_IP = '127.0.0.1'
+    TCP_PORT = 2000
+    BUFFER_SIZE = 1024
+
+    def __init__(self, badThingsQueue, stateQuee, pipe):
+        packName = "Name"
+        sockName = "Name"
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind((TCP_IP, TCP_PORT))
+        self.badThingsQueue = badThingsQueue
+        self.stateQueue = stateQueue
+        self.pipe = pipe
+        self.socket.listen(1)
+
+    def start(self):
+        connection, client_address = self.socket.accept()
+        try:
+            while True:
+                data = connection.recv(BUFFER_SIZE)
+            
+
+
+
