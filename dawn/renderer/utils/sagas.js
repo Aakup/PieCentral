@@ -14,7 +14,8 @@ import { updateGamepads } from '../actions/GamepadsActions';
 import { runtimeConnect, runtimeDisconnect } from '../actions/InfoActions';
 import { peripheralDisconnect } from '../actions/PeripheralActions';
 
-const dialog = remote.dialog;
+// const dialog = remote.dialog;
+// had to change this so tests could run :/
 
 /**
  * The electron showOpenDialog interface does not work well
@@ -26,7 +27,7 @@ const dialog = remote.dialog;
  */
 function openFileDialog() {
   return new Promise((resolve, reject) => {
-    dialog.showOpenDialog({
+    remote.dialog.showOpenDialog({
       filters: [{ name: 'python', extensions: ['py'] }],
     }, (filepaths) => {
       // If filepaths is undefined, the user did not specify a file.
@@ -47,7 +48,7 @@ function openFileDialog() {
  */
 function saveFileDialog() {
   return new Promise((resolve, reject) => {
-    dialog.showSaveDialog({
+    remote.dialog.showSaveDialog({
       filters: [{ name: 'python', extensions: ['py'] }],
     }, (filepath) => {
       // If filepath is undefined, the user did not specify a file.
@@ -88,12 +89,13 @@ function* writeFile(filepath, code) {
   });
 }
 
+const getEditorState = (state) => ({
+  filepath: state.editor.filepath,
+  code: state.editor.editorCode,
+});
+
 function* saveFile(action) {
-  const selector = (state) => ({
-    filepath: state.editor.filepath,
-    code: state.editor.editorCode,
-  });
-  const result = yield select(selector);
+  const result = yield select(getEditorState);
   let filepath = result.filepath;
   const code = result.code;
   // If the action is a "save as" OR there is no filepath (ie, a new file)
@@ -272,4 +274,11 @@ export default function* rootSaga() {
     fork(ansibleGamepads),
     fork(ansibleSaga),
   ];
-}
+};
+
+export { openFileDialog,
+         openFile,
+         writeFile,
+         getEditorState,
+         saveFileDialog,
+         saveFile }; // for tests
