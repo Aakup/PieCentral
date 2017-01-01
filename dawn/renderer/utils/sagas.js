@@ -133,6 +133,11 @@ function* runtimeHeartbeat() {
   }
 }
 
+const actionWithSamePeripheral = (nextAction) => (
+ nextAction.type === 'UPDATE_PERIPHERAL' && (String(nextAction.peripheral.uid.high)
+ + String(nextAction.peripheral.uid.low)) === id
+);
+
 /**
  * This saga removes peripherals that have not been updated by Runtime
  * recently (they are assumed to be disconnected).
@@ -142,10 +147,7 @@ function* reapPeripheral(action) {
   // Start a race between a delay and receiving an UPDATE_PERIPHERAL action for
   // this same peripheral (per peripheral.id). Only the winner has a value.
   const result = yield race({
-    peripheralUpdate: take((nextAction) => (
-      nextAction.type === 'UPDATE_PERIPHERAL' && (String(nextAction.peripheral.uid.high)
-      + String(nextAction.peripheral.uid.low)) === id
-    )),
+    peripheralUpdate: take(actionWithSamePeripheral),
     timeout: call(delay, 3000), // The delay is 3000 ms, or 3 seconds.
   });
 
@@ -278,4 +280,6 @@ export { openFileDialog,
          getEditorState,
          saveFileDialog,
          saveFile,
-         runtimeHeartbeat }; // for tests
+         runtimeHeartbeat,
+         actionWithSamePeripheral,
+         reapPeripheral }; // for tests

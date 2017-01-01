@@ -7,13 +7,16 @@ import { call, cps, fork, put, race, select, take } from 'redux-saga/effects';
 import { remote } from 'electron';
 import { openFileSucceeded, saveFileSucceeded } from '../../actions/EditorActions';
 import { runtimeConnect, runtimeDisconnect } from '../../actions/InfoActions';
+import { peripheralDisconnect } from '../../actions/PeripheralActions';
 import { openFileDialog,
          openFile,
          writeFile,
          getEditorState,
          saveFileDialog,
          saveFile,
-         runtimeHeartbeat } from '../sagas';
+         runtimeHeartbeat,
+         actionWithSamePeripheral,
+         reapPeripheral } from '../sagas';
 
 describe('filesystem sagas', () => {
   it('should yield effects for opening file', () => {
@@ -99,6 +102,53 @@ describe('runtime sagas', () => {
     expect.next({
       timeout: 1000,
     }).put(runtimeDisconnect());
+  });
+
+  it('should yield effects to reap peripheral, no timeout', () => {
+    const action = {
+      type: 'UPDATE_PERIPHERAL',
+      peripheral: {
+        device_type: 'SENSOR_SCALAR',
+        device_name: 'SS1',
+        value: 50,
+        uid: {
+          low: 123,
+          high: 456
+        }
+      },
+    };
+    const expect = fromGenerator(assert, reapPeripheral(action));
+    expect.next().race({
+      peripheralUpdate: take(actionWithSamePeripheral),
+      timeout: call(delay, 3000),
+    });
+    expect.next({
+      peripheralUpdate: action
+    }).returns();
+  });
+
+  it('should yield effects to reap peripheral, timeout', () => {
+    const action = {
+      type: 'UPDATE_PERIPHERAL',
+      peripheral: {
+        device_type: 'SENSOR_SCALAR',
+        device_name: 'SS1',
+        value: 50,
+        uid: {
+          low: 123,
+          high: 456
+        }
+      },
+    };
+    const expect = fromGenerator(assert, reapPeripheral(action));
+    expect.next().race({
+      peripheralUpdate: take(actionWithSamePeripheral),
+      timeout: call(delay, 3000),
+    });
+    expect.next({
+      timeout: 3000,
+    }).put(peripheralDisconnect('456123'));
+    expect.next().returns();
   });
 });
 
