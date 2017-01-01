@@ -2,15 +2,18 @@ import 'babel-polyfill';
 import fromGenerator from './redux-saga-test';
 import { assert } from 'chai';
 import fs from 'fs';
+import { delay, eventChannel, takeEvery } from 'redux-saga';
 import { call, cps, fork, put, race, select, take } from 'redux-saga/effects';
-import { openFileSucceeded } from '../../actions/EditorActions';
 import { remote } from 'electron';
+import { openFileSucceeded, saveFileSucceeded } from '../../actions/EditorActions';
+import { runtimeConnect, runtimeDisconnect } from '../../actions/InfoActions';
 import { openFileDialog,
          openFile,
          writeFile,
          getEditorState,
          saveFileDialog,
-         saveFile } from '../sagas';
+         saveFile,
+         runtimeHeartbeat } from '../sagas';
 
 describe('filesystem sagas', () => {
   it('should yield effects for opening file', () => {
@@ -24,11 +27,7 @@ describe('filesystem sagas', () => {
   it('should yield effects for writing file', () => {
     const expect = fromGenerator(assert, writeFile('mock-path', 'mock-code'));
     expect.next().cps(fs.writeFile, 'mock-path', 'mock-code');
-    expect.next().put({
-      type: 'SAVE_FILE_SUCCEEDED',
-      code: 'mock-code',
-      filepath: 'mock-path'
-    });
+    expect.next().put(saveFileSucceeded('mock-code', 'mock-path'));
     expect.next().returns();
   });
 
@@ -74,6 +73,32 @@ describe('filesystem sagas', () => {
     }).call(saveFileDialog);
     // follows to writeFile
     expect.next('mock-path').cps(fs.writeFile, 'mock-path', 'mock-code');
+  });
+});
+
+describe('runtime sagas', () => {
+  it('should yield effects for runtime heartbeat, connected', () => {
+    const expect = fromGenerator(assert, runtimeHeartbeat());
+    expect.next().race({
+      update: take('UPDATE_STATUS'),
+      timeout: call(delay, 1000),
+    });
+    expect.next({
+      update: {
+        type: 'UPDATE_STATUS'
+      },
+    }).put(runtimeConnect());
+  });
+
+  it('should yield effects for runtime heartbeat, disconnected', () => {
+    const expect = fromGenerator(assert, runtimeHeartbeat());
+    expect.next().race({
+      update: take('UPDATE_STATUS'),
+      timeout: call(delay, 1000),
+    });
+    expect.next({
+      timeout: 1000,
+    }).put(runtimeDisconnect());
   });
 });
 

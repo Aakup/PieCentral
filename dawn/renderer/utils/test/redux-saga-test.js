@@ -1,4 +1,5 @@
 // pulled from https://github.com/stoeffel/redux-saga-test/
+// modified to add "race" test
 
 'use strict'
 var saga = require('redux-saga')
@@ -39,6 +40,7 @@ module.exports = function fromGenerator (t, generator) {
         select: _nextIs(fn, mock, effects.select),
         actionChannel: _nextIs(fn, mock, effects.actionChannel),
         cancelled: _nextIs(fn, mock, effects.cancelled),
+        race: _nextIs(fn, mock, effects.race),
         returns: _returns(fn, mock)
       }
     }
