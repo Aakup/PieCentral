@@ -9,13 +9,13 @@ import _ from 'lodash';
 import { delay, eventChannel, takeEvery } from 'redux-saga';
 import { call, cps, fork, put, race, select, take } from 'redux-saga/effects';
 import { ipcRenderer, remote } from 'electron';
-import { openFileSucceeded } from '../actions/EditorActions';
+import { openFileSucceeded, saveFileSucceeded } from '../actions/EditorActions';
 import { updateGamepads } from '../actions/GamepadsActions';
 import { runtimeConnect, runtimeDisconnect } from '../actions/InfoActions';
 import { peripheralDisconnect } from '../actions/PeripheralActions';
 
 // const dialog = remote.dialog;
-// had to change this so tests could run :/
+// postpone looking into remote so tests can run
 
 /**
  * The electron showOpenDialog interface does not work well
@@ -82,11 +82,7 @@ function* openFile() {
  */
 function* writeFile(filepath, code) {
   yield cps(fs.writeFile, filepath, code);
-  yield put({
-    type: 'SAVE_FILE_SUCCEEDED',
-    code,
-    filepath,
-  });
+  yield put(saveFileSucceeded(code, filepath));
 }
 
 const getEditorState = (state) => ({
@@ -281,4 +277,5 @@ export { openFileDialog,
          writeFile,
          getEditorState,
          saveFileDialog,
-         saveFile }; // for tests
+         saveFile,
+         runtimeHeartbeat }; // for tests
