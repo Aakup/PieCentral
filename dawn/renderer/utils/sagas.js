@@ -85,13 +85,13 @@ function* writeFile(filepath, code) {
   yield put(saveFileSucceeded(code, filepath));
 }
 
-const getEditorState = (state) => ({
+const editorState = (state) => ({
   filepath: state.editor.filepath,
   code: state.editor.editorCode,
 });
 
 function* saveFile(action) {
-  const result = yield select(getEditorState);
+  const result = yield select(editorState);
   let filepath = result.filepath;
   const code = result.code;
   // If the action is a "save as" OR there is no filepath (ie, a new file)
@@ -248,14 +248,16 @@ function* ansibleSaga() {
   }
 }
 
+const gamepadsState = (state) => ({
+  studentCodeStatus: true,
+  gamepads: state.gamepads.gamepads,
+})
+
 /**
  * Send the store to the main process whenever it changes.
  */
 function* updateMainProcess() {
-  const stateSlice = yield select((state) => ({
-    studentCodeStatus: true,
-    gamepads: state.gamepads.gamepads,
-  }));
+  const stateSlice = yield select(gamepadsState);
   ipcRenderer.send('stateUpdate', stateSlice);
 }
 
@@ -277,9 +279,13 @@ export default function* rootSaga() {
 export { openFileDialog,
          openFile,
          writeFile,
-         getEditorState,
+         editorState,
          saveFileDialog,
          saveFile,
          runtimeHeartbeat,
          actionWithSamePeripheral,
-         reapPeripheral }; // for tests
+         reapPeripheral,
+         gamepadsState,
+         updateMainProcess,
+         ansibleReceiver,
+         ansibleSaga }; // for tests

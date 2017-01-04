@@ -11,12 +11,16 @@ import { peripheralDisconnect } from '../../actions/PeripheralActions';
 import { openFileDialog,
          openFile,
          writeFile,
-         getEditorState,
+         editorState,
          saveFileDialog,
          saveFile,
          runtimeHeartbeat,
          actionWithSamePeripheral,
-         reapPeripheral } from '../sagas';
+         reapPeripheral,
+         gamepadsState,
+         updateMainProcess,
+         ansibleReceiver,
+         ansibleSaga } from '../sagas';
 
 describe('filesystem sagas', () => {
   it('should yield effects for opening file', () => {
@@ -40,7 +44,7 @@ describe('filesystem sagas', () => {
       saveAs: false
     };
     const expect = fromGenerator(assert, saveFile(action));
-    expect.next().select(getEditorState);
+    expect.next().select(editorState);
     // follows to writeFile
     expect.next({
       filepath: 'mock-path',
@@ -54,7 +58,7 @@ describe('filesystem sagas', () => {
       saveAs: true
     };
     const expect = fromGenerator(assert, saveFile(action));
-    expect.next().select(getEditorState);
+    expect.next().select(editorState);
     expect.next({
       filepath: 'mock-path',
       code: 'mock-code'
@@ -69,7 +73,7 @@ describe('filesystem sagas', () => {
       saveAs: false
     };
     const expect = fromGenerator(assert, saveFile(action));
-    expect.next().select(getEditorState);
+    expect.next().select(editorState);
     expect.next({
       filepath: null,
       code: 'mock-code'
@@ -149,6 +153,24 @@ describe('runtime sagas', () => {
       timeout: 3000,
     }).put(peripheralDisconnect('456123'));
     expect.next().returns();
+  });
+
+  it('should update main process of store changes', () => {
+    const expect = fromGenerator(assert, updateMainProcess());
+    expect.next().select(gamepadsState);
+  });
+
+  it('should take data from ansibleReceiver and dispatch to store', () => {
+    const expect = fromGenerator(assert, ansibleSaga());
+    expect.next().call(ansibleReceiver);
+    /* cannot test ipcRenderer for is undefined in test env
+    const chan = ansibleReceiver();
+    expect.next(chan).take(chan);
+    expect.next({
+      type: "SOME_ACTION"
+    }).put({
+      type: "SOME_ACTION"
+    })*/
   });
 });
 
