@@ -133,6 +133,7 @@ function* runtimeHeartbeat() {
   }
 }
 
+let id = '';
 const actionWithSamePeripheral = (nextAction) => (
  nextAction.type === 'UPDATE_PERIPHERAL' && (String(nextAction.peripheral.uid.high)
  + String(nextAction.peripheral.uid.low)) === id
@@ -143,7 +144,7 @@ const actionWithSamePeripheral = (nextAction) => (
  * recently (they are assumed to be disconnected).
  */
 function* reapPeripheral(action) {
-  const id = String(action.peripheral.uid.high) + String(action.peripheral.uid.low);
+  id = String(action.peripheral.uid.high) + String(action.peripheral.uid.low);
   // Start a race between a delay and receiving an UPDATE_PERIPHERAL action for
   // this same peripheral (per peripheral.id). Only the winner has a value.
   const result = yield race({
@@ -251,7 +252,7 @@ function* ansibleSaga() {
 const gamepadsState = (state) => ({
   studentCodeStatus: true,
   gamepads: state.gamepads.gamepads,
-})
+});
 
 /**
  * Send the store to the main process whenever it changes.
@@ -274,7 +275,7 @@ export default function* rootSaga() {
     fork(ansibleGamepads),
     fork(ansibleSaga),
   ];
-};
+}
 
 export { openFileDialog,
          openFile,
