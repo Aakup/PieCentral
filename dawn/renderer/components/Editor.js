@@ -9,6 +9,11 @@ import {
   Col,
 } from 'react-bootstrap';
 import AceEditor from 'react-ace';
+import RendererBridge from '../../main/RendererBridge';
+import {
+  saveFile,
+} from '../../renderer/actions/EditorActions';
+import { select } from 'redux-saga/effects';
 
 // React-ace extensions and modes
 import 'brace/ext/language_tools';
@@ -25,6 +30,9 @@ import 'brace/theme/textmate';
 import 'brace/theme/solarized_dark';
 import 'brace/theme/solarized_light';
 import 'brace/theme/terminal';
+import { store } from '../configureStore';
+
+const Client = require('ssh2').Client;
 
 class Editor extends React.Component {
   constructor(props) {
@@ -98,7 +106,23 @@ class Editor extends React.Component {
   }
 
   upload() {
-    this.sendCode('upload');
+    if (this.hasUnsavedChanges()) {
+      RendererBridge.reduxDispatch(saveFile());
+    }
+    const conn = new Client();
+    conn.on('ready', () => {
+      console.log('SSH Connection');
+      conn.sftp((err, sftp) => {
+        if (err) throw err;
+        const result = select((state) => ({ filepath: state.editor.filepath }));
+        sftp.fastPut(result.filepath, '/home/k/ke/kevinma/test', (err2) => {
+          if (err2) throw err2;
+        });
+        conn.end();
+      });
+    }).connect({
+      host: '169.229.226.36',
+      port: 22 });
   }
 
   startRobot() {
@@ -109,7 +133,7 @@ class Editor extends React.Component {
   }
 
   stopRobot() {
-    console.log('Deprecated');
+    console.log(store.getState());
   }
 
   openAPI() {
@@ -154,7 +178,7 @@ class Editor extends React.Component {
                   bsStyle="default"
                   bsSize="small"
                   onClick={this.stopRobot}
-                  disabled={!(this.props.isRunningCode && this.props.runtimeStatus)}
+                  // disabled={!(this.props.isRunningCode && this.props.runtimeStatus)}
                 >
                   <Glyphicon glyph="stop" />
                 </Button>

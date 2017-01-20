@@ -76,6 +76,7 @@
     "riek": "^1.0.0",
     "seedrandom": "^2.4.2",
     "smalltalk": "^1.6.5",
+    "ssh2": "^0.5.4",
     "superagent": "^1.7.2"
   }
 }
