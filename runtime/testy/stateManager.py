@@ -30,6 +30,7 @@ class StateManager(object):
       SM_COMMANDS.CREATE_KEY : self.createKey,
       SM_COMMANDS.SEND_ANSIBLE : self.send_ansible,
       SM_COMMANDS.RECV_ANSIBLE: self.recv_ansible,
+      SM_COMMANDS.SET_DAWN_IP: self.reset_dawn_ip,
       SM_COMMANDS.GET_TIME : self.getTimestamp,
       SM_COMMANDS.EMERGENCY_STOP: self.emergencyStop,
       SM_COMMANDS.EMERGENCY_RESTART: self.emergencyRestart
@@ -65,7 +66,8 @@ class StateManager(object):
      "list1" : [[[70, t], ["five", t], [14.3, t]], t],
      "string1" : ["abcde", t],
      "runtime_meta" : [{"studentCode_main_count" : [0, t], "e_stopped" : [False, t]}, t],
-     "hibike" : [{"device_subscribed" : [0, t]}, t]
+     "hibike" : [{"device_subscribed" : [0, t]}, t],
+     "dawn_ip" : [None, t]
     }
 
   def addPipe(self, processName, pipe):
@@ -129,7 +131,9 @@ class StateManager(object):
 
   def recv_ansible(self, new_data):
     self.state.update(new_data)
-    print(new_data)
+
+  def reset_dawn_ip(self, new_ip):
+    self.state.update({"dawn_ip": [new_ip, time.time()]})
 
   def getTimestamp(self, keys):
     currDict = self.state

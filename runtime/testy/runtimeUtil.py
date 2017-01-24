@@ -25,6 +25,7 @@ class PROCESS_NAMES(Enum):
   RUNTIME             = "runtime"
   UDP_SEND_PROCESS    = "udpSendProcess"
   UDP_RECEIVE_PROCESS = "udpReceiveProcess"
+  TCP_HANDLER         = "tcpHandlerProcess"
   HIBIKE              = "hibike"
 
 @unique

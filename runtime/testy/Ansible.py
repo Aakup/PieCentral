@@ -14,6 +14,9 @@ class THREAD_NAMES(Enum):
     UDP_SENDER          = "udpSender"
     UDP_RECEIVER        = "udpReceiver"
     UDP_UNPACKAGER      = "udpUnpackager"
+    TCP_SENDER          = "tcpSender"
+    TCP_RECEIVER        = "tcpReceiver"
+
 
 class TwoBuffer():
     """Custom buffer class for handling states.
@@ -77,6 +80,7 @@ class UDPSendClass(AnsibleHandler):
         self.sendBuffer = TwoBuffer()
         packagerName = THREAD_NAMES.UDP_PACKAGER
         sockSendName = THREAD_NAMES.UDP_SENDER
+        self.dawn_ip = None
         super().__init__(packagerName, UDPSendClass.packageData, sockSendName,
                          UDPSendClass.udpSender, badThingsQueue, stateQueue, pipe)
 
@@ -105,6 +109,8 @@ class UDPSendClass(AnsibleHandler):
                         test_sensor.device_type = devVal[0][0]
                         test_sensor.value = devVal[0][1]
                         test_sensor.uid = devVal[0][2]
+                    elif devID == 'dawn_ip':
+                        self.dawn_ip = devVal
                 return proto_message.SerializeToString() 
             except Exception as e:
                 badThingsQueue.put(BadThing(sys.exc_info(),
@@ -119,10 +125,7 @@ class UDPSendClass(AnsibleHandler):
                 packState = package(rawState)
                 self.sendBuffer.replace(packState)
                 nextCall += 1.0/self.packagerHZ
-                try:
-                    time.sleep(nextCall - time.time())
-                except ValueError:
-                    continue
+                time.sleep(max(nextCall - time.time(), 0))
             except Exception as e:
                 badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP packager thread has crashed with error:" + str(e),  
@@ -135,19 +138,15 @@ class UDPSendClass(AnsibleHandler):
         The current state that has already been packaged is gotten from the 
         TwoBuffer, and is sent to Dawn via a UDP socket.
         """
-        host = '192.168.128.30' #TODO: Make this not hard coded
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             while True: 
                 try:
                     nextCall = time.time()
                     msg = self.sendBuffer.get()
-                    if msg != 0 and msg is not None: 
-                        s.sendto(msg, (host, UDPSendClass.SEND_PORT))
+                    if msg != 0 and msg is not None and self.dawn_ip is not None: 
+                        s.sendto(msg, (self.dawn_ip, UDPSendClass.SEND_PORT))
                     nextCall += 1.0/self.socketHZ
-                    try:
-                        time.sleep(nextCall - time.time())
-                    except ValueError:
-                        continue
+                    time.sleep(max(nextCall - time.time()), 0)
                 except Exception:
                     badThingsQueue.put(BadThing(sys.exc_info(), 
                     "UDP sender thread has crashed with error: " + str(e),  
@@ -161,7 +160,7 @@ class UDPRecvClass(AnsibleHandler):
         self.recvBuffer = TwoBuffer()        
         packName = THREAD_NAMES.UDP_UNPACKAGER
         sockRecvName = THREAD_NAMES.UDP_RECEIVER
-        host = "" #TODO: determine host between dawn-runtime comm
+        host = "" #0.0.0.0
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((host, UDPRecvClass.RECV_PORT))
         self.socket.setblocking(False)
@@ -176,9 +175,10 @@ class UDPRecvClass(AnsibleHandler):
         """
         try:
             while True:
-                recv_data = self.socket.recv(2048)
+                recv_data, addr = self.socket.recv(2048)
         except BlockingIOError:
             self.recvBuffer.replace(recv_data)
+            self.stateQueue.put([SM_COMMANDS.SET_DAWN_IP, [addr, time.time()]])
 
     def unpackageData(self):
         """Unpackages data from proto and sends to stateManager on the SM stateQueue
@@ -236,3 +236,21 @@ class UDPRecvClass(AnsibleHandler):
             "UDP receiver thread has crashed with error: " + str(e),
             event = BAD_EVENTS.UDP_RECV_ERROR,
             printStackTrace = True))
+
+class TCPHandler(AnsibleHandler):
+    TCP_PORT = 1237
+
+    def __init__(self, badThingsQueue, stateQueue, pipe):
+        self.pipe = pipe
+        self.stateQueue = stateQueue
+        self.badThingsQueue = badThingsQueue
+        self.host = None
+
+    def tcpSender(self):
+        def package(data):
+            return data #need to change to actually map to json, also need to account for different types of messages like sending logs or sending select messages.
+
+    def fromJson(self, jsonData):
+
+    def start(self):
+
