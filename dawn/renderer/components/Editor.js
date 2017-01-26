@@ -9,11 +9,6 @@ import {
   Col,
 } from 'react-bootstrap';
 import AceEditor from 'react-ace';
-import RendererBridge from '../../main/RendererBridge';
-import {
-  saveFile,
-} from '../../renderer/actions/EditorActions';
-import { select } from 'redux-saga/effects';
 
 // React-ace extensions and modes
 import 'brace/ext/language_tools';
@@ -106,23 +101,20 @@ class Editor extends React.Component {
   }
 
   upload() {
-    if (this.hasUnsavedChanges()) {
-      RendererBridge.reduxDispatch(saveFile());
-    }
     const conn = new Client();
     conn.on('ready', () => {
-      console.log('SSH Connection');
       conn.sftp((err, sftp) => {
         if (err) throw err;
-        const result = select((state) => ({ filepath: state.editor.filepath }));
-        sftp.fastPut(result.filepath, '/home/k/ke/kevinma/test', (err2) => {
+        console.log('SSH Connection');
+        sftp.fastPut('test2.txt', 'test3.txt', (err2) => {
           if (err2) throw err2;
         });
-        conn.end();
       });
     }).connect({
-      host: '169.229.226.36',
-      port: 22 });
+      debug: (inpt) => { console.log(inpt); },
+      host: '169.229.226.222',
+      port: 22, });
+    setTimeout(() => { conn.end(); }, 2000);
   }
 
   startRobot() {
@@ -186,7 +178,7 @@ class Editor extends React.Component {
                   bsStyle="default"
                   bsSize="small"
                   onClick={this.upload}
-                  disabled={this.props.isRunningCode || !this.props.runtimeStatus}
+                  // disabled={this.props.isRunningCode || !this.props.runtimeStatus}
                 >
                   <Glyphicon glyph="upload" />
                 </Button>
