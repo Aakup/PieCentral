@@ -74,11 +74,11 @@ function saveFileDialog() {
  */
 function unsavedDialog(action) {
   return new Promise((resolve, reject) => {
-    dialog.showMessageBox({
+    remote.dialog.showMessageBox({
       type: 'warning',
       buttons: [`Save and ${action}`, `Discard and ${action}`, 'Cancel action'],
       title: 'You have unsaved changes!',
-      message: `You are trying to ${action} a new file, but you have unsaved changes to 
+      message: `You are trying to ${action} a new file, but you have unsaved changes to
 your current one. What do you want to do?`,
     }, (res) => {
       // 'res' is an integer corrseponding to index in button list above.
@@ -123,13 +123,14 @@ function* saveFile(action) {
   }
 }
 
+const editorSavedState = (state) => ({
+  savedCode: state.editor.latestSaveCode,
+  code: state.editor.editorCode,
+});
+
 function* openFile(action) {
   const type = (action.type === 'OPEN_FILE') ? 'open' : 'create';
-  const selector = (state) => ({
-    savedCode: state.editor.latestSaveCode,
-    code: state.editor.editorCode,
-  });
-  const result = yield select(selector);
+  const result = yield select(editorSavedState);
   let res = 1;
   if (result.code !== result.savedCode) {
     res = yield call(unsavedDialog, type);
@@ -328,9 +329,11 @@ export default function* rootSaga() {
 }
 
 export { openFileDialog,
+         unsavedDialog,
          openFile,
          writeFile,
          editorState,
+         editorSavedState,
          saveFileDialog,
          saveFile,
          runtimeHeartbeat,

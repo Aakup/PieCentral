@@ -9,9 +9,11 @@ import { openFileSucceeded, saveFileSucceeded } from '../../actions/EditorAction
 import { runtimeConnect, runtimeDisconnect } from '../../actions/InfoActions';
 import { peripheralDisconnect } from '../../actions/PeripheralActions';
 import { openFileDialog,
+         unsavedDialog,
          openFile,
          writeFile,
          editorState,
+         editorSavedState,
          saveFileDialog,
          saveFile,
          runtimeHeartbeat,
@@ -23,11 +25,35 @@ import { openFileDialog,
          ansibleSaga } from '../sagas';
 
 describe('filesystem sagas', () => {
-  it('should yield effects for opening file', () => {
-    const expect = fromGenerator(assert, openFile());
-    expect.next().call(openFileDialog);
+  it('should yield effects for opening file (unsaved)', () => {
+    const action = {
+      type: 'OPEN_FILE',
+    };
+    const type = 'open';
+    const expect = fromGenerator(assert, openFile(action));
+    expect.next().select(editorSavedState);
+    expect.next({
+      savedCode: 'this was last code saved',
+      code: 'this is new modifications after last save',
+    }).call(unsavedDialog, type);
+    expect.next(1).call(openFileDialog);
     expect.next('mock-path').cps(fs.readFile, 'mock-path', 'utf8');
     expect.next('mock-data').put(openFileSucceeded('mock-data', 'mock-path'));
+    expect.next().returns();
+  });
+
+  it('should yield effects for creating new file (unsaved)', () => {
+    const action = {
+      type: 'CREATE_NEW_FILE',
+    };
+    const type = 'create';
+    const expect = fromGenerator(assert, openFile(action));
+    expect.next().select(editorSavedState);
+    expect.next({
+      savedCode: 'this was last code saved',
+      code: 'this is new modifications after last save',
+    }).call(unsavedDialog, type);
+    expect.next(1).put(openFileSucceeded('', null));
     expect.next().returns();
   });
 
@@ -173,31 +199,3 @@ describe('runtime sagas', () => {
     })*/
   });
 });
-
-/* old tests below
-describe('filesystem sagas', () => {
-  it('should yield effects for opening file', () => {
-    const gen = openFile();
-    expect(gen.next().value)
-          .to.deep.equal(call(openFileDialog));
-    expect(gen.next('mock-path').value)
-          .to.deep.equal(cps(fs.readFile, 'mock-path', 'utf8'));
-    expect(gen.next('mock-data').value)
-          .to.deep.equal(put(openFileSucceeded('mock-data', 'mock-path')));
-    expect(gen.next()).to.deep.equal({ done: true, value: undefined });
-  });
-
-  it('should yield effects for writing file', () => {
-    const gen = writeFile('mock-path', 'mock-code');
-    expect(gen.next().value)
-          .to.deep.equal(cps(fs.writeFile, 'mock-path', 'mock-code'));
-    expect(gen.next().value)
-          .to.deep.equal(put({
-            type: 'SAVE_FILE_SUCCEEDED',
-            code: 'mock-code',
-            filepath: 'mock-path'
-          }));
-    expect(gen.next()).to.deep.equal({ done: true, value: undefined });
-  });
-});
-*/
