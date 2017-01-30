@@ -1,6 +1,8 @@
 const initialInfoState = {
   ipAddress: 'localhost',
   studentCodeStatus: 0,
+  robotState: 2,
+  isRunningCode: false,
 };
 
 const info = (state = initialInfoState, action) => {
@@ -33,6 +35,24 @@ const info = (state = initialInfoState, action) => {
     case 'UPDATE_STATUS':
       return {
         ...state,
+      };
+    case 'CODE_STATUS':
+      return {
+        ...state,
+        studentCodeStatus: action.studentCodeStatus,
+      };
+    case 'IP_CHANGE':
+
+      return {
+        ...state,
+        ipAddress: action.ipAddress,
+      };
+    case 'ROBOT_STATE':
+      return {
+        ...state,
+        robotState: action.robotState,
+        isRunningCode: (action.robotState === 1 ||
+        action.robotState === 3 || action.robotState === 4),
       };
     default:
       return state;

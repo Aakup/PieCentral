@@ -20,6 +20,7 @@ const hostname = 'localhost';
 const client = dgram.createSocket('udp4');// sender
 const server = dgram.createSocket('udp4'); // receiver
 const SENDRATE = 1000;
+var state = 2;
 
 /**
  * Handler to receive messages from Dawn.
@@ -28,7 +29,13 @@ const SENDRATE = 1000;
 server.on('message', (msg) => {
   // Decode and get the raw object.
   const data = DawnData.decode(msg).toRaw();
-  console.log(`FakeRuntime received: ${JSON.stringify(data)}\n`);
+  console.log(data);
+  // console.log(data.student_code_status.valueOf());
+  if (data.student_code_status !== 'IDLE') {
+    state = 1;
+  } else {
+    state = 0;
+  }
 });
 
 server.bind(serverPort, hostname);
@@ -43,7 +50,7 @@ const randomFloat = (min, max) => ((max - min) * Math.random() + min);
  */
 const generateFakeData = () => [
   {
-    robot_state: Math.floor(randomFloat(0, 4)),
+    robot_state: state,
     sensor_data: [{
       device_type: 'MOTOR_SCALAR',
       device_name: 'MS1',

@@ -19,6 +19,21 @@ export const updateBattery = (battery) => ({
   battery,
 });
 
+export const updateCodeStatus = (studentCodeStatus) => ({
+  type: 'CODE_STATUS',
+  studentCodeStatus,
+});
+
+export const updateRobotState = (robotState) => ({
+  type: 'ROBOT_STATE',
+  robotState,
+});
+
 export const updateStatus = () => ({
   type: 'UPDATE_STATUS',
+});
+
+export const ipChange = (ipAddress) => ({
+  type: 'IP_CHANGE',
+  ipAddress,
 });

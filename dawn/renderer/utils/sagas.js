@@ -14,7 +14,12 @@ import { updateGamepads } from '../actions/GamepadsActions';
 import { runtimeConnect, runtimeDisconnect } from '../actions/InfoActions';
 import { peripheralDisconnect } from '../actions/PeripheralActions';
 
+let timestamp = Date.now();
 const dialog = remote.dialog;
+
+if (!Date.now) {
+  Date.now = () => { new Date().getTime(); };
+}
 
 /**
  * The electron showOpenDialog interface does not work well
@@ -248,12 +253,13 @@ function* ansibleGamepads() {
     // navigator.getGamepads always returns a reference to the same object. This
     // confuses redux, so we use assignIn to clone to a new object each time.
     const newGamepads = _.assignIn({}, navigator.getGamepads());
-    if (_needToUpdate(newGamepads)) {
+    if (_needToUpdate(newGamepads) || Date.now() - timestamp > 1000) {
       const formattedGamepads = formatGamepads(newGamepads);
       yield put(updateGamepads(formattedGamepads));
 
       // Send gamepad data to Runtime over Ansible.
-      if (_.some(newGamepads)) {
+      if (_.some(newGamepads) || Date.now() - timestamp > 1000) {
+        timestamp = Date.now();
         yield put({ type: 'UPDATE_MAIN_PROCESS' });
       }
     }
@@ -302,7 +308,7 @@ function* ansibleSaga() {
  */
 function* updateMainProcess() {
   const stateSlice = yield select((state) => ({
-    studentCodeStatus: state.studentCodeStatus,
+    studentCodeStatus: state.info.studentCodeStatus,
     gamepads: state.gamepads.gamepads,
   }));
   ipcRenderer.send('stateUpdate', stateSlice);

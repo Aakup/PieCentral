@@ -8,10 +8,11 @@ import {
     ansibleConnect,
     ansibleDisconnect,
     updateStatus,
+    updateRobotState,
 } from '../../renderer/actions/InfoActions';
 import { updatePeripheral } from '../../renderer/actions/PeripheralActions';
 
-const runtimeIP = 'localhost';  // '192.168.128.22';
+let runtimeIP = 'localhost';  // '192.168.128.22';
 const clientPort = 1236; // send port
 const serverPort = 1235; // receive port
 const tcpPort = 1237;
@@ -81,6 +82,10 @@ ipcMain.on('stateUpdate', (event, data) => {
   });
 });
 
+ipcMain.on('ipAddress', (event, data) => {
+  runtimeIP = data;
+});
+
 /**
  * Handler to receive messages from the robot Runtime
  */
@@ -89,7 +94,7 @@ server.on('message', (msg) => {
   RendererBridge.reduxDispatch(updateStatus());
   try {
     const data = RuntimeData.decode(msg);
-    // console.log(`Dawn received: ${JSON.stringify(data)}\n`);
+    RendererBridge.reduxDispatch(updateRobotState(data.robot_state));
     for (const sensor of data.sensor_data) {
       RendererBridge.reduxDispatch(updatePeripheral(sensor));
     }

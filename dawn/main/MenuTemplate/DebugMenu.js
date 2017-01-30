@@ -18,8 +18,14 @@ const DebugMenu = {
       },
     },
     {
-      label: 'Toggle Runtime',
-      child: null,
+      label: 'Toggle Fake Runtime',
+      kill() {
+        if (child) {
+          child.kill();
+          child = null;
+        }
+        return 'Done';
+      },
       click() {
         if (child) {
           child.kill();

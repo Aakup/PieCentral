@@ -16,6 +16,7 @@ import {
   clearConsole,
 } from '../actions/ConsoleActions';
 import { addAsyncAlert } from '../actions/AlertActions';
+import { updateCodeStatus } from '../actions/InfoActions';
 
 const mapStateToProps = (state) => ({
   editorCode: state.editor.editorCode,
@@ -25,6 +26,8 @@ const mapStateToProps = (state) => ({
   latestSaveCode: state.editor.latestSaveCode,
   showConsole: state.studentConsole.showConsole,
   consoleData: state.studentConsole.consoleData,
+  ipAddress: state.info.ipAddress,
+  connectionStatus: state.info.connectionStatus,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -57,6 +60,9 @@ const mapDispatchToProps = (dispatch) => ({
   },
   onClearConsole: () => {
     dispatch(clearConsole());
+  },
+  onUpdateCodeStatus: (status) => {
+    dispatch(updateCodeStatus(status));
   },
 });
 
