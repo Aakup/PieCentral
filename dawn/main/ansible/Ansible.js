@@ -1,6 +1,5 @@
 import { ipcMain } from 'electron';
 import ProtoBuf from 'protobufjs';
-import RendererBridge from '../RendererBridge';
 import dgram from 'dgram';
 import _ from 'lodash';
 import { clearConsole, updateConsole } from '../../renderer/actions/ConsoleActions';
@@ -11,6 +10,7 @@ import {
     updateRobotState,
 } from '../../renderer/actions/InfoActions';
 import { updatePeripheral } from '../../renderer/actions/PeripheralActions';
+import RendererBridge from '../RendererBridge';
 
 let runtimeIP = 'localhost';  // '192.168.128.22';
 const clientPort = 1236; // send port
@@ -29,6 +29,7 @@ const RuntimeData = runtimeBuilder.build('RuntimeData');
 const TCPData = runtimeBuilder.build('TCPData');
 
 const net = require('net');
+
 net.createServer((socket) => {
   console.log('TCP Connection Up');
   socket.on('data', (data) => {

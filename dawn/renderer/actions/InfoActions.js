@@ -14,17 +14,17 @@ export const runtimeDisconnect = () => ({
   type: 'RUNTIME_DISCONNECT',
 });
 
-export const updateBattery = (battery) => ({
+export const updateBattery = battery => ({
   type: 'UPDATE_BATTERY',
   battery,
 });
 
-export const updateCodeStatus = (studentCodeStatus) => ({
+export const updateCodeStatus = studentCodeStatus => ({
   type: 'CODE_STATUS',
   studentCodeStatus,
 });
 
-export const updateRobotState = (robotState) => ({
+export const updateRobotState = robotState => ({
   type: 'ROBOT_STATE',
   robotState,
 });
@@ -33,7 +33,7 @@ export const updateStatus = () => ({
   type: 'UPDATE_STATUS',
 });
 
-export const ipChange = (ipAddress) => ({
+export const ipChange = ipAddress => ({
   type: 'IP_CHANGE',
   ipAddress,
 });

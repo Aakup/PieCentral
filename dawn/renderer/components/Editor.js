@@ -1,6 +1,4 @@
 import React from 'react';
-import ConsoleOutput from './ConsoleOutput';
-import EditorButton from './EditorButton';
 import {
   Panel,
   ButtonGroup,
@@ -28,7 +26,11 @@ import 'brace/theme/textmate';
 import 'brace/theme/solarized_dark';
 import 'brace/theme/solarized_light';
 import 'brace/theme/terminal';
-import { store } from '../configureStore';
+
+import UpdateBox from './UpdateBox';
+import ConfigBox from './ConfigBox';
+import ConsoleOutput from './ConsoleOutput';
+import EditorButton from './EditorButton';
 
 const Client = require('ssh2').Client;
 
@@ -36,6 +38,16 @@ const dialog = remote.dialog;
 const currentWindow = remote.getCurrentWindow();
 
 class Editor extends React.Component {
+  static pathToName(filepath) {
+    if (filepath !== null) {
+      if (process.platform === 'win32') {
+        return filepath.split('\\').pop();
+      }
+      return filepath.split('/').pop();
+    }
+    return '[ New File ]';
+  }
+
   constructor(props) {
     super(props);
     this.consoleHeight = 250; // pixels
@@ -56,7 +68,13 @@ class Editor extends React.Component {
     this.changeTheme = this.changeTheme.bind(this);
     this.increaseFontsize = this.increaseFontsize.bind(this);
     this.decreaseFontsize = this.decreaseFontsize.bind(this);
-    this.state = { editorHeight: this.getEditorHeight() };
+    this.toggleUpdateModal = this.toggleUpdateModal.bind(this);
+    this.toggleConfigModal = this.toggleConfigModal.bind(this);
+    this.state = {
+      editorHeight: this.getEditorHeight(),
+      showUpdateModal: false,
+      showConfigModal: false,
+    };
   }
 
   componentDidMount() {
@@ -119,7 +137,7 @@ class Editor extends React.Component {
   }
 
   getEditorHeight(windowHeight) {
-    return `${String(windowHeight - 160 - this.props.showConsole * (this.consoleHeight + 40))}px`;
+    return `${String(windowHeight - 160 - (this.props.showConsole * (this.consoleHeight + 40)))}px`;
   }
 
   correctText(text) {
@@ -137,61 +155,56 @@ class Editor extends React.Component {
     setTimeout(() => this.refs.CodeEditor.editor.resize(), 0.1);
   }
 
-  sendCode(command) {
+  upload() {
+    const filepath = this.props.filepath;
+    if (filepath == null) {
+      console.log('No file? No upload');
+      return;
+    }
     const correctedText = this.correctText(this.props.editorCode);
     if (correctedText !== this.props.editorCode) {
       this.props.onAlertAdd(
         'Invalid characters detected',
         'Your code has non-ASCII characters, which won\'t work on the robot. ' +
-        'Please remove them and try again.'
+        'Please remove them and try again.',
       );
-      return false;
+      return;
     }
-    console.log('Deprecated: sendCode');
-    console.log(`Debug Info: ${command} EOD`);
-    return true;
-  }
-
-  upload() {
     const conn = new Client();
     conn.on('ready', () => {
       conn.sftp((err, sftp) => {
         if (err) throw err;
         console.log('SSH Connection');
-        sftp.fastPut('test2.txt', 'test3.txt', (err2) => {
+        sftp.fastPut(filepath, Editor.pathToName(filepath), (err2) => {
           if (err2) throw err2;
         });
       });
     }).connect({
       debug: (inpt) => { console.log(inpt); },
-      host: '169.229.226.222',
+      host: this.props.ipAddress,
       port: 22 });
     setTimeout(() => { conn.end(); }, 2000);
   }
 
   startRobot() {
-    const sent = this.sendCode('execute');
-    if (sent) {
-      this.props.onClearConsole();
-    }
+    this.props.onUpdateCodeStatus(1);
+    this.props.onClearConsole();
   }
 
   stopRobot() {
-    console.log(store.getState());
+    this.props.onUpdateCodeStatus(0);
+  }
+
+  toggleUpdateModal() {
+    this.setState({ showUpdateModal: !this.state.showUpdateModal });
+  }
+
+  toggleConfigModal() {
+    this.setState({ showConfigModal: !this.state.showConfigModal });
   }
 
   openAPI() {
     window.open('https://pie-api.readthedocs.org/');
-  }
-
-  pathToName(filepath) {
-    if (filepath !== null) {
-      if (process.platform === 'win32') {
-        return filepath.split('\\').pop();
-      }
-      return filepath.split('/').pop();
-    }
-    return '[ New File ]';
   }
 
   hasUnsavedChanges() {
@@ -225,11 +238,28 @@ class Editor extends React.Component {
       <Panel
         bsStyle="primary"
         header={
-          <span style={{ fontSize: '14' }}>
-            Editing: {this.pathToName(this.props.filepath)} {changeMarker}
+          <span style={{ fontSize: '14px' }}>
+            Editing: {Editor.pathToName(this.props.filepath)} {changeMarker}
           </span>
         }
       >
+        <UpdateBox
+          isRunningCode={this.props.isRunningCode}
+          connectionStatus={this.props.connectionStatus}
+          runtimeStatus={this.props.runtimeStatus}
+          shouldShow={this.state.showUpdateModal}
+          ipAddress={this.props.ipAddress}
+          hide={() => { this.toggleUpdateModal.call(this); }}
+        />
+        <ConfigBox
+          isRunningCode={this.props.isRunningCode}
+          connectionStatus={this.props.connectionStatus}
+          runtimeStatus={this.props.runtimeStatus}
+          shouldShow={this.state.showConfigModal}
+          ipAddress={this.props.ipAddress}
+          onIPChange={this.props.onIPChange}
+          hide={() => { this.toggleConfigModal.call(this); }}
+        />
         <ButtonToolbar>
           <ButtonGroup id="file-operations-buttons">
             <EditorButton
@@ -256,21 +286,21 @@ class Editor extends React.Component {
           <ButtonGroup id="code-execution-buttons">
             <EditorButton
               text="Run"
-              onClick={this.startRobot}
+              onClick={() => { this.startRobot.call(this); }}
               glyph="play"
               disabled={this.props.isRunningCode || !this.props.runtimeStatus}
             />
             <EditorButton
               text="Stop"
-              onClick={this.stopRobot}
+              onClick={() => { this.stopRobot.call(this); }}
               glyph="stop"
               disabled={!(this.props.isRunningCode && this.props.runtimeStatus)}
             />
             <EditorButton
               text="Upload"
-              onClick={this.upload}
+              onClick={() => { this.upload.call(this); }}
               glyph="upload"
-              disabled={this.props.isRunningCode || !this.props.runtimeStatus}
+              // disabled={this.props.isRunningCode || !this.props.runtimeStatus}
             />
           </ButtonGroup>
           <ButtonGroup id="console-buttons">
@@ -302,6 +332,16 @@ class Editor extends React.Component {
               onClick={this.decreaseFontsize}
               glyph="zoom-out"
               disabled={this.props.fontSize < 7}
+            />
+            <EditorButton
+              text="Updates"
+              onClick={this.toggleUpdateModal}
+              glyph="cloud-upload"
+            />
+            <EditorButton
+              text="Configuration"
+              onClick={this.toggleConfigModal}
+              glyph="cog"
             />
           </ButtonGroup>
           <DropdownButton
@@ -362,8 +402,12 @@ Editor.propTypes = {
   onShowConsole: React.PropTypes.func,
   onHideConsole: React.PropTypes.func,
   onClearConsole: React.PropTypes.func,
+  onUpdateCodeStatus: React.PropTypes.func,
+  onIPChange: React.PropTypes.func,
   isRunningCode: React.PropTypes.bool,
   runtimeStatus: React.PropTypes.bool,
+  connectionStatus: React.PropTypes.bool,
+  ipAddress: React.PropTypes.string,
 };
 
 export default Editor;

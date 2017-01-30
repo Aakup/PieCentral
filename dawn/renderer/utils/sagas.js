@@ -109,7 +109,7 @@ function* writeFile(filepath, code) {
 }
 
 function* saveFile(action) {
-  const selector = (state) => ({
+  const selector = state => ({
     filepath: state.editor.filepath,
     code: state.editor.editorCode,
   });
@@ -132,7 +132,7 @@ function* saveFile(action) {
 
 function* openFile(action) {
   const type = (action.type === 'OPEN_FILE') ? 'open' : 'create';
-  const selector = (state) => ({
+  const selector = state => ({
     savedCode: state.editor.latestSaveCode,
     code: state.editor.editorCode,
   });
@@ -198,7 +198,7 @@ function* reapPeripheral(action) {
   // Start a race between a delay and receiving an UPDATE_PERIPHERAL action for
   // this same peripheral (per peripheral.id). Only the winner has a value.
   const result = yield race({
-    peripheralUpdate: take((nextAction) => (
+    peripheralUpdate: take(nextAction => (
       nextAction.type === 'UPDATE_PERIPHERAL' && (String(nextAction.peripheral.uid.high)
       + String(nextAction.peripheral.uid.low)) === id
     )),
@@ -307,7 +307,7 @@ function* ansibleSaga() {
  * Send the store to the main process whenever it changes.
  */
 function* updateMainProcess() {
-  const stateSlice = yield select((state) => ({
+  const stateSlice = yield select(state => ({
     studentCodeStatus: state.info.studentCodeStatus,
     gamepads: state.gamepads.gamepads,
   }));

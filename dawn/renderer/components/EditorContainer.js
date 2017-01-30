@@ -5,20 +5,20 @@ import {
   saveFile,
   openFile,
   createNewFile,
-} from '../actions/EditorActions.js';
+} from '../actions/EditorActions';
 import {
   changeTheme,
   changeFontsize,
-} from '../actions/SettingsActions.js';
+} from '../actions/SettingsActions';
 import {
   showConsole,
   hideConsole,
   clearConsole,
 } from '../actions/ConsoleActions';
 import { addAsyncAlert } from '../actions/AlertActions';
-import { updateCodeStatus } from '../actions/InfoActions';
+import { updateCodeStatus, ipChange } from '../actions/InfoActions';
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   editorCode: state.editor.editorCode,
   editorTheme: state.settings.editorTheme,
   filepath: state.editor.filepath,
@@ -30,7 +30,7 @@ const mapStateToProps = (state) => ({
   connectionStatus: state.info.connectionStatus,
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onAlertAdd: (heading, message) => {
     dispatch(addAsyncAlert(heading, message));
   },
@@ -63,6 +63,9 @@ const mapDispatchToProps = (dispatch) => ({
   },
   onUpdateCodeStatus: (status) => {
     dispatch(updateCodeStatus(status));
+  },
+  onIPChange: (ipAddress) => {
+    dispatch(ipChange(ipAddress));
   },
 });
 

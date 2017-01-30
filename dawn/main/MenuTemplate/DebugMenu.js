@@ -2,8 +2,8 @@
  * Defines the debug menu.
  */
 
-import RendererBridge from '../RendererBridge';
 import { fork } from 'child_process';
+import RendererBridge from '../RendererBridge';
 
 // Reference to the child process for FakeRuntime.
 let child = null;

@@ -4,9 +4,21 @@ import {
   Button,
 } from 'react-bootstrap';
 import { remote } from 'electron';
+
 const dialog = remote.dialog;
+const Client = require('ssh2').Client;
 
 class UpdateBox extends React.Component {
+  static pathToName(filepath) {
+    if (filepath !== null) {
+      if (process.platform === 'win32') {
+        return filepath.split('\\').pop();
+      }
+      return filepath.split('/').pop();
+    }
+    return '';
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -39,7 +51,26 @@ class UpdateBox extends React.Component {
   }
 
   upgradeSoftware() {
-    console.log('Deprecated');
+    this.setState({ isUploading: true });
+    const conn = new Client();
+    conn.on('ready', () => {
+      conn.sftp((err, sftp) => {
+        if (err) throw err;
+        console.log('SSH Connection');
+        sftp.fastPut(UpdateBox.pathToName(this.state.updateFilepath),
+          UpdateBox.pathToName(this.state.updateFilepath), (err2) => {
+            if (err2) throw err2;
+          });
+        sftp.fastPut(UpdateBox.pathToName(this.state.signatureFilepath),
+          UpdateBox.pathToName(this.state.signatureFilepath), (err3) => {
+            if (err3) throw err3;
+          });
+      });
+    }).connect({
+      debug: (inpt) => { console.log(inpt); },
+      host: this.props.ipAddress,
+      port: 22 });
+    setTimeout(() => { conn.end(); this.setState({ isUploading: false }); }, 5000);
   }
 
   disableUploadUpdate() {
@@ -65,9 +96,6 @@ class UpdateBox extends React.Component {
           <h5>{this.state.signatureFilepath ? this.state.signatureFilepath : ''}</h5>
           <Button onClick={this.chooseSignature}>Choose File</Button>
           <br />
-          <strong>
-            Warning: This process will take a few minutes and will disconnect you from the robot.
-          </strong>
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -86,9 +114,10 @@ class UpdateBox extends React.Component {
 UpdateBox.propTypes = {
   shouldShow: React.PropTypes.bool.isRequired,
   hide: React.PropTypes.func.isRequired,
-  connectionStatus: React.PropTypes.bool,
-  runtimeStatus: React.PropTypes.bool,
-  isRunningCode: React.PropTypes.bool,
+  connectionStatus: React.PropTypes.bool.isRequired,
+  runtimeStatus: React.PropTypes.bool.isRequired,
+  isRunningCode: React.PropTypes.bool.isRequired,
+  ipAddress: React.PropTypes.string.isRequired,
 };
 
 export default UpdateBox;

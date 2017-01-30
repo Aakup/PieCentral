@@ -3,6 +3,8 @@ const initialInfoState = {
   studentCodeStatus: 0,
   robotState: 2,
   isRunningCode: false,
+  connectionStatus: false,
+  runtimeStatus: false,
 };
 
 const info = (state = initialInfoState, action) => {

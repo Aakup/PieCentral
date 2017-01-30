@@ -20,7 +20,7 @@ const hostname = 'localhost';
 const client = dgram.createSocket('udp4');// sender
 const server = dgram.createSocket('udp4'); // receiver
 const SENDRATE = 1000;
-var state = 2;
+let state = 2;
 
 /**
  * Handler to receive messages from Dawn.
@@ -43,7 +43,7 @@ server.bind(serverPort, hostname);
 /**
  * Returns a random number between min and max.
  */
-const randomFloat = (min, max) => ((max - min) * Math.random() + min);
+const randomFloat = (min, max) => (((max - min) * Math.random()) + min);
 
 /**
  * Generate fake data to send to Dawn
@@ -57,30 +57,30 @@ const generateFakeData = () => [
       value: randomFloat(-100, 100),
       uid: 100,
     },
-      {
-        device_type: 'LimitSwitch',
-        device_name: 'LS1',
-        value: Math.round(randomFloat(0, 1)),
-        uid: 101,
-      },
-      {
-        device_type: 'SENSOR_SCALAR',
-        device_name: 'SS1',
-        value: randomFloat(-100, 100),
-        uid: 102,
-      },
-      {
-        device_type: 'ServoControl',
-        device_name: 'SC1',
-        value: Math.round(randomFloat(0, 180)),
-        uid: 103,
-      },
-      {
-        device_type: 'ColorSensor',
-        device_name: 'CS1',
-        value: Math.round(randomFloat(0, 255)),
-        uid: 104,
-      },
+    {
+      device_type: 'LimitSwitch',
+      device_name: 'LS1',
+      value: Math.round(randomFloat(0, 1)),
+      uid: 101,
+    },
+    {
+      device_type: 'SENSOR_SCALAR',
+      device_name: 'SS1',
+      value: randomFloat(-100, 100),
+      uid: 102,
+    },
+    {
+      device_type: 'ServoControl',
+      device_name: 'SC1',
+      value: Math.round(randomFloat(0, 180)),
+      uid: 103,
+    },
+    {
+      device_type: 'ColorSensor',
+      device_name: 'CS1',
+      value: Math.round(randomFloat(0, 255)),
+      uid: 104,
+    },
     ],
   },
 ];
