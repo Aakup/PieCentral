@@ -48,8 +48,7 @@ class UpdateBox extends React.Component {
   }
 
   disableUploadUpdate() {
-    return this.props.connectionStatus || this.props.runtimeStatus
-      || this.props.isRunningCode || (this.getValidationState() === 'error');
+    return this.props.runtimeStatus || this.props.isRunningCode || (this.getValidationState() === 'error');
   }
 
   render() {

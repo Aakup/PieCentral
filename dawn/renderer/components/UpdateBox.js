@@ -57,11 +57,11 @@ class UpdateBox extends React.Component {
       conn.sftp((err, sftp) => {
         if (err) throw err;
         console.log('SSH Connection');
-        sftp.fastPut(UpdateBox.pathToName(this.state.updateFilepath),
+        sftp.fastPut(this.state.updateFilepath,
           UpdateBox.pathToName(this.state.updateFilepath), (err2) => {
             if (err2) throw err2;
           });
-        sftp.fastPut(UpdateBox.pathToName(this.state.signatureFilepath),
+        sftp.fastPut(this.state.signatureFilepath,
           UpdateBox.pathToName(this.state.signatureFilepath), (err3) => {
             if (err3) throw err3;
           });

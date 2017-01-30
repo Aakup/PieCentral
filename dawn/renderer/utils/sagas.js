@@ -118,7 +118,7 @@ function* saveFile(action) {
   const code = result.code;
   // If the action is a "save as" OR there is no filepath (ie, a new file)
   // then we open the save file dialog so the user can specify a filename before saving.
-  if (action.saveAs || !filepath) {
+  if (action.saveAs === true || !filepath) {
     try {
       filepath = yield call(saveFileDialog);
       yield* writeFile(filepath, code);
