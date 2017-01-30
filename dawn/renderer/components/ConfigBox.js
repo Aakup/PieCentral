@@ -24,10 +24,8 @@ class UpdateBox extends React.Component {
   getValidationState() {
     const current = this.state.ipAddress;
     let valid = false;
-    let regex = '^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.';
-    regex += '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.';
-    regex += '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.';
-    regex += '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$';
+    const regex = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}' +
+      '((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$';
     if ((new RegExp(regex)).test(current)) {
       valid = true;
     }
@@ -41,6 +39,7 @@ class UpdateBox extends React.Component {
 
   saveChanges() {
     this.props.onIPChange(this.state.ipAddress);
+    this.props.hide();
   }
 
   handleChange(e) {
