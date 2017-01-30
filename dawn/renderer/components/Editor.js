@@ -113,7 +113,7 @@ class Editor extends React.Component {
     }).connect({
       debug: (inpt) => { console.log(inpt); },
       host: '169.229.226.222',
-      port: 22, });
+      port: 22 });
     setTimeout(() => { conn.end(); }, 2000);
   }
 

@@ -1,4 +1,9 @@
-const info = (state = {}, action) => {
+const initialInfoState = {
+  ipAddress: 'localhost',
+  studentCodeStatus: 0,
+};
+
+const info = (state = initialInfoState, action) => {
   switch (action.type) {
     case 'ANSIBLE_CONNECT':
       return {

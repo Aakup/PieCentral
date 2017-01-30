@@ -253,7 +253,7 @@ function* ansibleSaga() {
  */
 function* updateMainProcess() {
   const stateSlice = yield select((state) => ({
-    studentCodeStatus: true,
+    studentCodeStatus: state.studentCodeStatus,
     gamepads: state.gamepads.gamepads,
   }));
   ipcRenderer.send('stateUpdate', stateSlice);
