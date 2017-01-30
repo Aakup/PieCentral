@@ -45,7 +45,7 @@ class Editor extends React.Component {
       }
       return filepath.split('/').pop();
     }
-    return '[ New File ]';
+    return false;
   }
 
   constructor(props) {
@@ -158,6 +158,12 @@ class Editor extends React.Component {
   upload() {
     const filepath = this.props.filepath;
     if (filepath == null) {
+      dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Close'],
+        title: 'No Files',
+        message: 'No file? No upload',
+      });
       console.log('No file? No upload');
       return;
     }
@@ -171,18 +177,50 @@ class Editor extends React.Component {
       return;
     }
     const conn = new Client();
+    conn.on('error', (err) => {
+      dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Close'],
+        title: 'Connection Issue',
+        message: 'Could Not Connect to Robot',
+      });
+      throw err;
+    });
     conn.on('ready', () => {
       conn.sftp((err, sftp) => {
-        if (err) throw err;
+        if (err) {
+          dialog.showMessageBox({
+            type: 'warning',
+            buttons: ['Close'],
+            title: 'Connection Issue',
+            message: 'Could Not Connect to Robot',
+          });
+          throw err;
+        }
         console.log('SSH Connection');
-        sftp.fastPut(filepath, Editor.pathToName(filepath), (err2) => {
-          if (err2) throw err2;
+        let filename = Editor.pathToName(filepath);
+        if (filename === false) {
+          console.log('Defaulting to student_code.py');
+          filename = 'student_code.py';
+        }
+        sftp.fastPut(filepath, filename, (err2) => {
+          if (err2) {
+            dialog.showMessageBox({
+              type: 'warning',
+              buttons: ['Close'],
+              title: 'Upload Issue',
+              message: 'Code Upload Failed.',
+            });
+            throw err2;
+          }
         });
       });
     }).connect({
       debug: (inpt) => { console.log(inpt); },
       host: this.props.ipAddress,
-      port: 22 });
+      port: 22,
+      username: 'pie',
+    });
     setTimeout(() => { conn.end(); }, 2000);
   }
 
@@ -239,7 +277,7 @@ class Editor extends React.Component {
         bsStyle="primary"
         header={
           <span style={{ fontSize: '14px' }}>
-            Editing: {Editor.pathToName(this.props.filepath)} {changeMarker}
+            Editing: {Editor.pathToName(this.props.filepath) ? Editor.pathToName(this.props.filepath) : '[ New File ]' } {changeMarker}
           </span>
         }
       >

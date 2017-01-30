@@ -4,6 +4,7 @@ import {
   Button,
 } from 'react-bootstrap';
 import { remote } from 'electron';
+import Editor from './Editor';
 
 const dialog = remote.dialog;
 const Client = require('ssh2').Client;
@@ -52,25 +53,66 @@ class UpdateBox extends React.Component {
 
   upgradeSoftware() {
     this.setState({ isUploading: true });
+    const update = Editor.pathToName(this.state.updateFilepath);
+    const signat = Editor.pathToName(this.state.signatureFilepath);
+    if (!update || !signat) {
+      this.setState({ isUploading: false });
+      let msg = '';
+      if (!update) {
+        msg += 'Update File Bad\n';
+      }
+      if (!signat) {
+        msg += 'Signature File Bad\n';
+      }
+      dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Close'],
+        title: 'File Issue',
+        message: msg,
+      });
+      return;
+    }
     const conn = new Client();
     conn.on('ready', () => {
       conn.sftp((err, sftp) => {
         if (err) throw err;
         console.log('SSH Connection');
         sftp.fastPut(this.state.updateFilepath,
-          UpdateBox.pathToName(this.state.updateFilepath), (err2) => {
-            if (err2) throw err2;
+          Editor.pathToName(this.state.updateFilepath), (err2) => {
+            if (err2) {
+              dialog.showMessageBox({
+                type: 'warning',
+                buttons: ['Close'],
+                title: 'Upload Issue',
+                message: 'Update File Upload Failed.',
+              });
+              throw err2;
+            }
           });
         sftp.fastPut(this.state.signatureFilepath,
-          UpdateBox.pathToName(this.state.signatureFilepath), (err3) => {
-            if (err3) throw err3;
+          Editor.pathToName(this.state.signatureFilepath), (err3) => {
+            if (err3) {
+              dialog.showMessageBox({
+                type: 'warning',
+                buttons: ['Close'],
+                title: 'Upload Issue',
+                message: 'Signature File Upload Failed.',
+              });
+              throw err3;
+            }
           });
       });
     }).connect({
       debug: (inpt) => { console.log(inpt); },
       host: this.props.ipAddress,
-      port: 22 });
-    setTimeout(() => { conn.end(); this.setState({ isUploading: false }); }, 5000);
+      port: 22,
+      username: 'pie',
+    });
+    setTimeout(() => {
+      conn.end();
+      this.setState({ isUploading: false });
+      this.props.hide();
+    }, 5000);
   }
 
   disableUploadUpdate() {
