@@ -2,9 +2,9 @@ import 'babel-polyfill';
 import fromGenerator from './redux-saga-test';
 import { assert } from 'chai';
 import fs from 'fs';
-import { delay, eventChannel, takeEvery } from 'redux-saga';
-import { call, cps, fork, put, race, select, take } from 'redux-saga/effects';
-import { remote } from 'electron';
+import { delay } from 'redux-saga';
+import { call, take } from 'redux-saga/effects';
+// import { remote } from 'electron';
 import { openFileSucceeded, saveFileSucceeded } from '../../actions/EditorActions';
 import { runtimeConnect, runtimeDisconnect } from '../../actions/InfoActions';
 import { peripheralDisconnect } from '../../actions/PeripheralActions';
@@ -67,27 +67,27 @@ describe('filesystem sagas', () => {
   it('should yield effects for saving file', () => {
     const action = {
       type: 'SAVE_FILE',
-      saveAs: false
+      saveAs: false,
     };
     const expect = fromGenerator(assert, saveFile(action));
     expect.next().select(editorState);
     // follows to writeFile
     expect.next({
       filepath: 'mock-path',
-      code: 'mock-code'
+      code: 'mock-code',
     }).cps(fs.writeFile, 'mock-path', 'mock-code');
   });
 
   it('should yield effects for saving file as (saveAs true)', () => {
     const action = {
       type: 'SAVE_FILE',
-      saveAs: true
+      saveAs: true,
     };
     const expect = fromGenerator(assert, saveFile(action));
     expect.next().select(editorState);
     expect.next({
       filepath: 'mock-path',
-      code: 'mock-code'
+      code: 'mock-code',
     }).call(saveFileDialog);
     // follows to writeFile
     expect.next('mock-new-path').cps(fs.writeFile, 'mock-new-path', 'mock-code');
@@ -96,13 +96,13 @@ describe('filesystem sagas', () => {
   it('should yield effects for saving file as (no filepath)', () => {
     const action = {
       type: 'SAVE_FILE',
-      saveAs: false
+      saveAs: false,
     };
     const expect = fromGenerator(assert, saveFile(action));
     expect.next().select(editorState);
     expect.next({
       filepath: null,
-      code: 'mock-code'
+      code: 'mock-code',
     }).call(saveFileDialog);
     // follows to writeFile
     expect.next('mock-path').cps(fs.writeFile, 'mock-path', 'mock-code');
@@ -118,7 +118,7 @@ describe('runtime sagas', () => {
     });
     expect.next({
       update: {
-        type: 'UPDATE_STATUS'
+        type: 'UPDATE_STATUS',
       },
     }).put(runtimeConnect());
   });
@@ -143,8 +143,8 @@ describe('runtime sagas', () => {
         value: 50,
         uid: {
           low: 123,
-          high: 456
-        }
+          high: 456,
+        },
       },
     };
     const expect = fromGenerator(assert, reapPeripheral(action));
@@ -153,7 +153,7 @@ describe('runtime sagas', () => {
       timeout: call(delay, 3000),
     });
     expect.next({
-      peripheralUpdate: action
+      peripheralUpdate: action,
     }).returns();
   });
 
@@ -166,8 +166,8 @@ describe('runtime sagas', () => {
         value: 50,
         uid: {
           low: 123,
-          high: 456
-        }
+          high: 456,
+        },
       },
     };
     const expect = fromGenerator(assert, reapPeripheral(action));

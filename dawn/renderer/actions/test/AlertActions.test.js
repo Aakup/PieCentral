@@ -22,7 +22,7 @@ describe('alerts action creator', () => {
   it('should create an action remove an alert', () => {
     const expectedAction = {
       type: 'REMOVE_ASYNC_ALERT',
-      id: 0
+      id: 0,
     };
     expect(removeAsyncAlert(0)).to.deep.equal(expectedAction);
   });
