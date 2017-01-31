@@ -25,10 +25,8 @@ class UpdateBox extends React.Component {
     this.state = {
       isUploading: false,
       updateFilepath: '',
-      signatureFilepath: '',
     };
     this.chooseUpdate = this.chooseUpdate.bind(this);
-    this.chooseSignature = this.chooseSignature.bind(this);
     this.upgradeSoftware = this.upgradeSoftware.bind(this);
     this.disableUploadUpdate = this.disableUploadUpdate.bind(this);
   }
@@ -42,33 +40,16 @@ class UpdateBox extends React.Component {
     });
   }
 
-  chooseSignature() {
-    dialog.showOpenDialog({
-      filters: [{ name: 'Update signature', extensions: ['asc'] }],
-    }, (filepaths) => {
-      if (filepaths === undefined) return;
-      this.setState({ signatureFilepath: filepaths[0] });
-    });
-  }
-
   upgradeSoftware() {
     this.setState({ isUploading: true });
     const update = Editor.pathToName(this.state.updateFilepath);
-    const signat = Editor.pathToName(this.state.signatureFilepath);
-    if (!update || !signat) {
+    if (!update) {
       this.setState({ isUploading: false });
-      let msg = '';
-      if (!update) {
-        msg += 'Update File Bad\n';
-      }
-      if (!signat) {
-        msg += 'Signature File Bad\n';
-      }
       dialog.showMessageBox({
         type: 'warning',
         buttons: ['Close'],
         title: 'File Issue',
-        message: msg,
+        message: 'Update File Bad\n',
       });
       return;
     }
@@ -89,18 +70,6 @@ class UpdateBox extends React.Component {
               throw err2;
             }
           });
-        sftp.fastPut(this.state.signatureFilepath,
-          Editor.pathToName(this.state.signatureFilepath), (err3) => {
-            if (err3) {
-              dialog.showMessageBox({
-                type: 'warning',
-                buttons: ['Close'],
-                title: 'Upload Issue',
-                message: 'Signature File Upload Failed.',
-              });
-              throw err3;
-            }
-          });
       });
     }).connect({
       debug: (inpt) => { console.log(inpt); },
@@ -117,7 +86,7 @@ class UpdateBox extends React.Component {
 
   disableUploadUpdate() {
     return (
-      !(this.state.updateFilepath && this.state.signatureFilepath) ||
+      !(this.state.updateFilepath) ||
       this.state.isUploading ||
       !(this.props.connectionStatus && this.props.runtimeStatus) ||
       this.props.isRunningCode
@@ -134,9 +103,6 @@ class UpdateBox extends React.Component {
           <h4>Update Package (tar.gz file)</h4>
           <h5>{this.state.updateFilepath ? this.state.updateFilepath : ''}</h5>
           <Button onClick={this.chooseUpdate}>Choose File</Button>
-          <h4>Update Signature (tar.gz.asc file)</h4>
-          <h5>{this.state.signatureFilepath ? this.state.signatureFilepath : ''}</h5>
-          <Button onClick={this.chooseSignature}>Choose File</Button>
           <br />
         </Modal.Body>
         <Modal.Footer>

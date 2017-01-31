@@ -53,7 +53,7 @@ const randomFloat = (min, max) => (((max - min) * Math.random()) + min);
  */
 const generateFakeData = () => [
   {
-    robot_state: state.valueOf(),
+    robot_state: state,
     sensor_data: [{
       device_type: 'MOTOR_SCALAR',
       device_name: 'MS1',
