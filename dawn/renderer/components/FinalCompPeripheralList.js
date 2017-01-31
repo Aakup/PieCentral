@@ -10,9 +10,10 @@ import _ from 'lodash';
 const FinalCompPeripheralList = (props) => {
   let errorMsg = null;
   if (!props.connectionStatus) {
-    errorMsg = <p>You are currently disconnected from the robot.</p>;
+    errorMsg = 'You are currently disconnected from the robot.';
   } else if (!props.runtimeStatus) {
-    errorMsg = <p>There appears to be some sort of Runtime error. No data is being received.</p>;
+    errorMsg = 'There appears to be some sort of Runtime error. ' +
+      'No data is being received.';
   }
   return (
     <PeripheralList header="Peripherals">
@@ -29,7 +30,7 @@ const FinalCompPeripheralList = (props) => {
             peripheralType={peripheral.device_type}
           />
         )
-      ) : errorMsg
+      ) : <p className="panelText">{errorMsg}</p>
     }
     </PeripheralList>
   );
