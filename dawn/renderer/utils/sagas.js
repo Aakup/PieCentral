@@ -100,7 +100,7 @@ function* writeFile(filepath, code) {
   yield put(saveFileSucceeded(code, filepath));
 }
 
-const editorState = (state) => ({
+const editorState = state => ({
   filepath: state.editor.filepath,
   code: state.editor.editorCode,
 });
@@ -123,7 +123,7 @@ function* saveFile(action) {
   }
 }
 
-const editorSavedState = (state) => ({
+const editorSavedState = state => ({
   savedCode: state.editor.latestSaveCode,
   code: state.editor.editorCode,
 });
