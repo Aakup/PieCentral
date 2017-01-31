@@ -131,7 +131,7 @@ class Editor extends React.Component {
       this.props.onShowConsole();
     }
     // must call resize method after changing height of ace editor
-    setTimeout(() => this.refs.CodeEditor.editor.resize(), 0.1);
+    setTimeout(() => this.refs.CodeEditor.editor.resize(), 100);
   }
 
   sendCode(command) {
