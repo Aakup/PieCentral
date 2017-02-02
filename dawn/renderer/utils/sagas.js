@@ -253,17 +253,17 @@ function* ansibleGamepads() {
     // navigator.getGamepads always returns a reference to the same object. This
     // confuses redux, so we use assignIn to clone to a new object each time.
     const newGamepads = _.assignIn({}, navigator.getGamepads());
-    if (_needToUpdate(newGamepads) || Date.now() - timestamp > 1000) {
+    if (_needToUpdate(newGamepads) || Date.now() - timestamp > 100) {
       const formattedGamepads = formatGamepads(newGamepads);
       yield put(updateGamepads(formattedGamepads));
 
       // Send gamepad data to Runtime over Ansible.
-      if (_.some(newGamepads) || Date.now() - timestamp > 1000) {
+      if (_.some(newGamepads) || Date.now() - timestamp > 100) {
         timestamp = Date.now();
         yield put({ type: 'UPDATE_MAIN_PROCESS' });
       }
     }
-
+g
     yield call(delay, 50); // wait 50 ms before updating again.
   }
 }

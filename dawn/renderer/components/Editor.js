@@ -198,12 +198,7 @@ class Editor extends React.Component {
           throw err;
         }
         console.log('SSH Connection');
-        let filename = Editor.pathToName(filepath);
-        if (filename === false) {
-          console.log('Defaulting to student_code.py');
-          filename = 'student_code.py';
-        }
-        sftp.fastPut(filepath, filename, (err2) => {
+        sftp.fastPut(filepath, './studentcode/studentcode.py', (err2) => {
           if (err2) {
             dialog.showMessageBox({
               type: 'warning',
@@ -219,7 +214,8 @@ class Editor extends React.Component {
       debug: (inpt) => { console.log(inpt); },
       host: this.props.ipAddress,
       port: 22,
-      username: 'pie',
+      username: 'ubuntu',
+      password: 'temppwd'
     });
     setTimeout(() => { conn.end(); }, 2000);
   }

@@ -59,7 +59,7 @@ class UpdateBox extends React.Component {
         if (err) throw err;
         console.log('SSH Connection');
         sftp.fastPut(this.state.updateFilepath,
-          Editor.pathToName(this.state.updateFilepath), (err2) => {
+          `./updates/${Editor.pathToName(this.state.updateFilepath)}`, (err2) => {
             if (err2) {
               dialog.showMessageBox({
                 type: 'warning',
@@ -75,7 +75,8 @@ class UpdateBox extends React.Component {
       debug: (inpt) => { console.log(inpt); },
       host: this.props.ipAddress,
       port: 22,
-      username: 'pie',
+      username: 'ubuntu',
+      password: 'temppwd'
     });
     setTimeout(() => {
       conn.end();

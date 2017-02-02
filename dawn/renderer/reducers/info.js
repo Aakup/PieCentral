@@ -1,5 +1,5 @@
 const initialInfoState = {
-  ipAddress: 'localhost',
+  ipAddress: '192.168.7.2',
   studentCodeStatus: 0,
   robotState: 2,
   isRunningCode: false,
