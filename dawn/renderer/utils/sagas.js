@@ -263,7 +263,7 @@ function* ansibleGamepads() {
         yield put({ type: 'UPDATE_MAIN_PROCESS' });
       }
     }
-g
+
     yield call(delay, 50); // wait 50 ms before updating again.
   }
 }

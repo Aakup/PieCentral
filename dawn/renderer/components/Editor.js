@@ -215,7 +215,7 @@ class Editor extends React.Component {
       host: this.props.ipAddress,
       port: 22,
       username: 'ubuntu',
-      password: 'temppwd'
+      password: 'temppwd',
     });
     setTimeout(() => { conn.end(); }, 2000);
   }
